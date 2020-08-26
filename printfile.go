@@ -1,22 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"os"
 	"strings"
 	"text/template"
 )
-
-//${(actionRequest.sampleUnitRef?trim)!}
-//${(actionRequest.iac?trim)!"null"}
-//${(actionRequest.caseGroupStatus)!"null"}
-//${(actionRequest.enrolmentStatus)!"null"}
-//${(actionRequest.respondentStatus)!"null"}
-//${(actionRequest.contact.forename?trim)!"null"}:
-//${(actionRequest.contact.surname?trim)!"null"}:
-//${(actionRequest.contact.emailAddress)!"null"}:
-//${(actionRequest.region)!"null"}
 
 var (
 	pt = "printfile.tmpl"
@@ -27,20 +18,20 @@ type PrintFile struct {
 }
 
 type PrintFileEntry struct {
-	SampleUnitRef string //trim
-	Iac string //trim
-	CaseGroupStatus string
-	EnrolmentStatus string
-	RespondentStatus string
-	Contact Contact
-	Region string
+	SampleUnitRef string `json:"sampleUnitRef"`
+	Iac string `json:"iac"`
+	CaseGroupStatus string `json:"caseGroupStatus"`
+	EnrolmentStatus string `json:"enrolmentStatus"`
+	RespondentStatus string `json:"respondentStatus"`
+	Contact Contact `json:"contact"`
+	Region string `json:"region"`
 
 }
 
 type Contact struct {
-	Forename string //trim
-	Surname string //trim
-	EmailAddress string
+	Forename string `json:"forename"`
+	Surname string `json:"surname"`
+	EmailAddress string `json:"emailAddress"`
 }
 
 func (pf *PrintFile) sanitise() {
@@ -54,7 +45,6 @@ func (pf *PrintFile) sanitise() {
 		pfe.Contact.Surname = nullIfEmpty(pfe.Contact.Surname)
 		pfe.Contact.EmailAddress = nullIfEmpty(pfe.Contact.EmailAddress)
 		pfe.Region = nullIfEmpty(pfe.Region)
-
 		fmt.Print(pfe)
 	}
 }
@@ -79,13 +69,18 @@ func (pf *PrintFile) process() error {
 	}
 	fmt.Print(string(dat))
 
-	t := template.Must(template.New("printfile.tmpl").ParseFiles(pt))
-	//if err != nil {
-	//	panic(err)
-	//}
-	err = t.Execute(os.Stdout, pf)
+	t, err := template.New("printfile.tmpl").ParseFiles(pt)
 	if err != nil {
-		panic(err)
+		log.WithError(err).Error("failed to find template")
+		return err
 	}
+	fmt.Println(pf)
+
+	buf := &bytes.Buffer{}
+	err = t.Execute(buf, pf)
+		if err != nil {
+		log.WithError(err).Error("failed to process template")
+	}
+	fmt.Println(buf.String())
 	return nil
 }

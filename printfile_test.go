@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -13,7 +14,10 @@ func TestPrintFile(t *testing.T) {
 	printfile := &PrintFile{
 		PrintFiles: createPrintFileEntries(1),
 	}
-	fmt.Println(printfile)
+	pj, _ := json.Marshal(printfile)
+
+	s := string(pj)
+	fmt.Println(s)
 	err := printfile.process()
 	assert.Nil(err)
 }
