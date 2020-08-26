@@ -3,11 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"io/ioutil"
 	"net/http"
 )
+
+func middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		next.ServeHTTP(w, r)
+	})
+}
 
 func print(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -16,6 +24,12 @@ func print(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.WithError(err).Error("unable to read body")
 				w.WriteHeader(http.StatusInternalServerError)
+			}
+			vars := mux.Vars(r)
+			filename := vars["filename"]
+			if filename == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Fprintln(w, "Missing filename")
 			}
 			var printFileEntries []*PrintFileEntry
 			err = json.Unmarshal(reqBody, &printFileEntries)
@@ -28,14 +42,37 @@ func print(w http.ResponseWriter, r *http.Request) {
 			}
 
 			//spawn a process to process the printfile
-			go printFile.process()
+			go printFile.process(filename)
 			w.WriteHeader(http.StatusAccepted)
 			resp, _ := json.Marshal(printFile)
 
 			fmt.Fprintln(w, string(resp))
 
 		default:
+			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(w, "Only POST methods are supported.")
+	}
+}
+
+func alive(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "{\"status\": \"OK\"}")
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Only GET methods are supporteds")
+	}
+}
+
+func ready(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "{\"status\": \"READY\"}")
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Only GET methods are supporteds")
 	}
 }
 
@@ -65,6 +102,13 @@ func configure() {
 
 func main() {
 	configure()
-	http.HandleFunc("/print", print)
+
+	r := mux.NewRouter()
+	r.Use(middleware)
+	r.HandleFunc("/print/{filename}", print)
+	r.HandleFunc("/alive", alive)
+	r.HandleFunc("/ready", ready)
+	http.Handle("/", r)
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

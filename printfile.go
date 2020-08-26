@@ -58,7 +58,10 @@ func nullIfEmpty(value string) string {
 	return value
 }
 
-func (pf *PrintFile) process() error {
+func (pf *PrintFile) process(filename string) error {
+	//first save the request to the DB
+	store := &Store{}
+	store.store(filename, pf)
 
 	//first sanitise the data
 	pf.sanitise()
@@ -78,9 +81,24 @@ func (pf *PrintFile) process() error {
 
 	buf := &bytes.Buffer{}
 	err = t.Execute(buf, pf)
-		if err != nil {
+	if err != nil {
 		log.WithError(err).Error("failed to process template")
 	}
 	fmt.Println(buf.String())
+	upload(filename, buf)
+
+	//TODO handle errors/retry
 	return nil
+}
+
+func upload(filename string, buffer *bytes.Buffer) {
+	// first upload to GCS
+	gcsUpload := &GCSUpload{}
+	gcsUpload.Init()
+	gcsUpload.UploadFile(filename, buffer.Bytes())
+
+	// and then to SFTP
+	sftpUpload := SFTPUpload{}
+	sftpUpload.Init()
+	sftpUpload.UploadFile(filename, buffer.Bytes())
 }
