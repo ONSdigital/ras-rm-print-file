@@ -95,10 +95,20 @@ func upload(filename string, buffer *bytes.Buffer) {
 	// first upload to GCS
 	gcsUpload := &GCSUpload{}
 	gcsUpload.Init()
-	gcsUpload.UploadFile(filename, buffer.Bytes())
+	err := gcsUpload.UploadFile(filename, buffer.Bytes())
+	if err != nil {
+		//TODO retry
+	}
 
 	// and then to SFTP
 	sftpUpload := SFTPUpload{}
-	sftpUpload.Init()
-	sftpUpload.UploadFile(filename, buffer.Bytes())
+	err = sftpUpload.Init()
+	if err != nil {
+		// TODO retry connection ?
+		return
+	}
+	err = sftpUpload.UploadFile(filename, buffer.Bytes())
+	if err != nil {
+		//TODO retry
+	}
 }

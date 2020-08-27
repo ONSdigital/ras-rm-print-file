@@ -16,6 +16,11 @@ resources:
 
 verbose: true
 
+sftp:
+  directory: /home/demo/sftp
+  test:
+    enabled: true
+
 gcp:
   bucket:
     name: ras-rm-print-file

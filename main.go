@@ -90,6 +90,11 @@ func configureLogging() {
 func setDefaults() {
 	viper.SetDefault("VERBOSE", true)
 	viper.SetDefault("BUCKET_NAME", "ras-rm-printfile")
+	viper.SetDefault("SFTP_HOST", "localhost")
+	viper.SetDefault("SFTP_PORT", "22")
+	viper.SetDefault("SFTP_USERNAME", "sftp")
+	viper.SetDefault("SFTP_PASSWORD", "sftp")
+	viper.SetDefault("SFTP_DIRECTORY", "printfiles")
 }
 
 func configure() {
