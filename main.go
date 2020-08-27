@@ -44,7 +44,7 @@ func print(w http.ResponseWriter, r *http.Request) {
 
 			w.WriteHeader(http.StatusAccepted)
 			resp, _ := json.Marshal(printFile)
-			log.WithField("print_file", resp).Debug("about to process")
+			log.WithField("print_file", string(resp)).Debug("about to process")
 			//spawn a process to process the printfile
 			go printFile.process(filename)
 		default:

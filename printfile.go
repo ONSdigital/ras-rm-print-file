@@ -14,6 +14,13 @@ var (
 
 type PrintFile struct {
 	PrintFiles []*PrintFileEntry
+	Status Status `json:"-"`
+}
+
+type Status struct {
+	TemplateComplete bool
+	UploadedGCS bool
+	UploadedSFTP bool
 }
 
 type PrintFileEntry struct {
@@ -24,7 +31,6 @@ type PrintFileEntry struct {
 	RespondentStatus string `json:"respondentStatus"`
 	Contact Contact `json:"contact"`
 	Region string `json:"region"`
-
 }
 
 type Contact struct {
@@ -58,6 +64,11 @@ func nullIfEmpty(value string) string {
 }
 
 func (pf *PrintFile) process(filename string) error {
+	pf.Status = Status {
+		TemplateComplete: false,
+		UploadedGCS:      false,
+		UploadedSFTP:     false,
+	}
 	log.WithField("filename", filename).Info("processing print file")
 	// first save the request to the DB
 	store := &Store{}
@@ -75,7 +86,7 @@ func (pf *PrintFile) process(filename string) error {
 		return err
 	}
 
-	log.WithField("template", string(printTemplate)).WithField("filename", filename).Info("about to process template")
+	log.WithField("template", printTemplate).WithField("filename", filename).Info("about to process template")
 	// create a bytes buffer and run the template engine
 	buf := &bytes.Buffer{}
 	err = t.Execute(buf, pf)
@@ -83,10 +94,10 @@ func (pf *PrintFile) process(filename string) error {
 		log.WithError(err).Error("failed to process template")
 		return nil
 	}
+	pf.Status.TemplateComplete = true
 	log.WithField("template", printTemplate).WithField("filename", filename).Info("templating complete")
 	pf.upload(filename, buf)
-
-	//TODO handle errors/retry
+	store.update(pf)
 	return nil
 }
 
@@ -98,17 +109,21 @@ func (pf *PrintFile) upload(filename string, buffer *bytes.Buffer) {
 	err := gcsUpload.UploadFile(filename, buffer.Bytes())
 	if err != nil {
 		//TODO retry
+		pf.Status.UploadedGCS = false
+	} else {
+		pf.Status.UploadedGCS = true
 	}
-
 	// and then to SFTP
 	sftpUpload := SFTPUpload{}
 	err = sftpUpload.Init()
 	if err != nil {
-		// TODO retry connection ?
+		pf.Status.UploadedSFTP = false
 		return
 	}
 	err = sftpUpload.UploadFile(filename, buffer.Bytes())
 	if err != nil {
 		//TODO retry
+		pf.Status.UploadedSFTP = false
 	}
+	pf.Status.UploadedSFTP = true
 }
