@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"strings"
 	"text/template"
 )
 
 var (
-	pt = "printfile.tmpl"
+	printTemplate = "printfile.tmpl"
 )
 
 type PrintFile struct {
@@ -35,6 +34,7 @@ type Contact struct {
 }
 
 func (pf *PrintFile) sanitise() {
+	log.Info("sanitising print file to match expected outcomes")
 	for _, pfe := range pf.PrintFiles {
 		pfe.SampleUnitRef = strings.TrimSpace(pfe.SampleUnitRef)
 		pfe.Iac = nullIfEmpty(strings.TrimSpace(pfe.Iac))
@@ -50,48 +50,48 @@ func (pf *PrintFile) sanitise() {
 }
 
 func nullIfEmpty(value string) string {
-	fmt.Printf("before %q\n", value)
 	if value == "" {
-		fmt.Print("return null\n")
+		log.WithField("value", value).Debug("empty value replacing with null")
 		return "null"
 	}
 	return value
 }
 
 func (pf *PrintFile) process(filename string) error {
-	//first save the request to the DB
+	log.WithField("filename", filename).Info("processing print file")
+	// first save the request to the DB
 	store := &Store{}
 	store.store(filename, pf)
 
-	//first sanitise the data
+	// first sanitise the data
 	pf.sanitise()
 
-	dat, err := ioutil.ReadFile(pt)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Print(string(dat))
-
-	t, err := template.New("printfile.tmpl").ParseFiles(pt)
+	// load the template
+	log.WithField("template", printTemplate).Info("about to load template")
+	t, err := template.New(printTemplate).ParseFiles(printTemplate)
 	if err != nil {
 		log.WithError(err).Error("failed to find template")
+		//TODO set to not ready
 		return err
 	}
-	fmt.Println(pf)
 
+	log.WithField("template", printTemplate).WithField("filename", filename).Info("about to process template")
+	// create a bytes buffer and run the template engine
 	buf := &bytes.Buffer{}
 	err = t.Execute(buf, pf)
 	if err != nil {
 		log.WithError(err).Error("failed to process template")
+		return nil
 	}
-	fmt.Println(buf.String())
-	upload(filename, buf)
+	log.WithField("template", printTemplate).WithField("filename", filename).Info("templating complete")
+	pf.upload(filename, buf)
 
 	//TODO handle errors/retry
 	return nil
 }
 
-func upload(filename string, buffer *bytes.Buffer) {
+func (pf *PrintFile) upload(filename string, buffer *bytes.Buffer) {
+	log.WithField("filename", filename).Info("uploading file")
 	// first upload to GCS
 	gcsUpload := &GCSUpload{}
 	gcsUpload.Init()

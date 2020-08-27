@@ -15,6 +15,8 @@ func (s *SFTPUpload) Init() error {
 	var err error
 	host := viper.GetString("SFTP_HOST")
 	port := viper.GetString("SFTP_PORT")
+	log.WithField("host", host).WithField("port", port).Info("initialising sftp connection")
+
 	addr := host + ":" + port
 	config := &ssh.ClientConfig{
 		User: viper.GetString("SFTP_USERNAME"),
@@ -27,14 +29,18 @@ func (s *SFTPUpload) Init() error {
 		log.WithError(err).Error("unable to initialise the SFTP connection")
 		return err
 	}
+	log.Info("connected to SFTP server")
 	return nil
 }
 
 func (s *SFTPUpload) Close() {
+	log.Info("closing connection to SFTP")
 	s.conn.Close()
+	log.Info("sftp connection closed")
 }
 
-func (s *SFTPUpload) UploadFile(name string, contents []byte) error {
+func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
+	log.WithField("filename", filename).Info("uploading to SFTP server")
 	// open an SFTP session over an existing ssh connection.
 	client, err := sftp.NewClient(s.conn)
 	if err != nil {
@@ -42,22 +48,26 @@ func (s *SFTPUpload) UploadFile(name string, contents []byte) error {
 	}
 	defer client.Close()
 
-	f, err := client.Create(name)
+	log.Info("creating file")
+	f, err := client.Create(filename)
 	if err != nil {
-		log.Fatal(err)
+		log.WithError(err).Error("unable to create file")
+		return err
 	}
+	log.Info("writing contents")
 	if _, err := f.Write(contents); err != nil {
-		log.Fatal(err)
+		log.WithError(err).Error("unable to write file contents")
+		return err
 	}
 	f.Close()
 
 	// check it's there
-	fi, err := client.Lstat(name)
+	log.Info("confirming file exists")
+	fi, err := client.Lstat(filename)
 	if err != nil {
-		log.Fatal(err)
+		log.WithError(err).Error("unable to write file contents")
+		return err
 	}
-	log.Println(fi)
-
-
+	log.WithField("file", fi.Name()).Info("upload complete")
 	return nil
 }

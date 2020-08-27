@@ -31,6 +31,7 @@ func print(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusBadRequest)
 				fmt.Fprintln(w, "Missing filename")
 			}
+			log.WithField("filename", filename).Info("received request to print file")
 			var printFileEntries []*PrintFileEntry
 			err = json.Unmarshal(reqBody, &printFileEntries)
 			if err != nil {
@@ -41,15 +42,14 @@ func print(w http.ResponseWriter, r *http.Request) {
 				PrintFiles: printFileEntries,
 			}
 
-			//spawn a process to process the printfile
-			go printFile.process(filename)
 			w.WriteHeader(http.StatusAccepted)
 			resp, _ := json.Marshal(printFile)
-
-			fmt.Fprintln(w, string(resp))
-
+			log.WithField("print_file", resp).Debug("about to process")
+			//spawn a process to process the printfile
+			go printFile.process(filename)
 		default:
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			log.Info("print - method not allowed")
 			fmt.Fprintf(w, "Only POST methods are supported.")
 	}
 }
@@ -57,22 +57,26 @@ func print(w http.ResponseWriter, r *http.Request) {
 func alive(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
+		log.Info("alive OK")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "{\"status\": \"OK\"}")
 	default:
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "Only GET methods are supporteds")
+		log.Info("alive -method not allowed")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprint(w, "Only GET methods are supported")
 	}
 }
 
 func ready(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
+		log.Info("ready OK")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "{\"status\": \"READY\"}")
 	default:
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "Only GET methods are supporteds")
+		log.Info("ready - method not allowed")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprint(w, "Only GET methods are supported")
 	}
 }
 
@@ -107,6 +111,7 @@ func configure() {
 
 func main() {
 	configure()
+	log.Info("starting ras-rm-print-file")
 
 	r := mux.NewRouter()
 	r.Use(middleware)
@@ -115,5 +120,6 @@ func main() {
 	r.HandleFunc("/ready", ready)
 	http.Handle("/", r)
 
+	log.Info("started")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
