@@ -19,38 +19,38 @@ func middleware(next http.Handler) http.Handler {
 
 func print(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-		case "POST":
-			reqBody, err := ioutil.ReadAll(r.Body)
-			if err != nil {
-				log.WithError(err).Error("unable to read body")
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-			vars := mux.Vars(r)
-			filename := vars["filename"]
-			if filename == "" {
-				w.WriteHeader(http.StatusBadRequest)
-				fmt.Fprintln(w, "Missing filename")
-			}
-			log.WithField("filename", filename).Info("received request to print file")
-			var printFileEntries []*PrintFileEntry
-			err = json.Unmarshal(reqBody, &printFileEntries)
-			if err != nil {
-				log.WithError(err).Error("unable to marshall json payload")
-				w.WriteHeader(http.StatusBadRequest)
-			}
-			printFile := PrintFile{
-				PrintFiles: printFileEntries,
-			}
+	case "POST":
+		reqBody, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.WithError(err).Error("unable to read body")
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		vars := mux.Vars(r)
+		filename := vars["filename"]
+		if filename == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintln(w, "Missing filename")
+		}
+		log.WithField("filename", filename).Info("received request to print file")
+		var printFileEntries []*PrintFileEntry
+		err = json.Unmarshal(reqBody, &printFileEntries)
+		if err != nil {
+			log.WithError(err).Error("unable to marshall json payload")
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		printFile := PrintFile{
+			PrintFiles: printFileEntries,
+		}
 
-			w.WriteHeader(http.StatusAccepted)
-			resp, _ := json.Marshal(printFile)
-			log.WithField("print_file", string(resp)).Debug("about to process")
-			//spawn a process to process the printfile
-			go printFile.process(filename)
-		default:
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			log.Info("print - method not allowed")
-			fmt.Fprintf(w, "Only POST methods are supported.")
+		w.WriteHeader(http.StatusAccepted)
+		resp, _ := json.Marshal(printFile)
+		log.WithField("print_file", string(resp)).Debug("about to process")
+		//spawn a process to process the printfile
+		go printFile.process(filename)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		log.Info("print - method not allowed")
+		fmt.Fprintf(w, "Only POST methods are supported.")
 	}
 }
 
@@ -107,7 +107,6 @@ func configure() {
 	setDefaults()
 	configureLogging()
 }
-
 
 func main() {
 	configure()

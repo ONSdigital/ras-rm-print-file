@@ -24,19 +24,19 @@ func TestPrintFile(t *testing.T) {
 
 func createPrintFileEntries(count int) []*PrintFileEntry {
 	entries := make([]*PrintFileEntry, count)
-	for i := 0; i < count; i ++ {
+	for i := 0; i < count; i++ {
 		entry := &PrintFileEntry{
 			SampleUnitRef:    "10001",
 			Iac:              "ai9bt497r7bn",
 			CaseGroupStatus:  "NOTSTARTED",
 			EnrolmentStatus:  "",
 			RespondentStatus: "",
-			Contact:          Contact{
+			Contact: Contact{
 				Forename:     "Jon",
 				Surname:      "Snow",
 				EmailAddress: "jon.snow@example.com",
 			},
-			Region:           "HH",
+			Region: "HH",
 		}
 		entries[i] = entry
 	}

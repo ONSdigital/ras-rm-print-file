@@ -14,28 +14,28 @@ var (
 
 type PrintFile struct {
 	PrintFiles []*PrintFileEntry
-	Status Status `json:"-"`
+	Status     Status `json:"-"`
 }
 
 type Status struct {
 	TemplateComplete bool
-	UploadedGCS bool
-	UploadedSFTP bool
+	UploadedGCS      bool
+	UploadedSFTP     bool
 }
 
 type PrintFileEntry struct {
-	SampleUnitRef string `json:"sampleUnitRef"`
-	Iac string `json:"iac"`
-	CaseGroupStatus string `json:"caseGroupStatus"`
-	EnrolmentStatus string `json:"enrolmentStatus"`
-	RespondentStatus string `json:"respondentStatus"`
-	Contact Contact `json:"contact"`
-	Region string `json:"region"`
+	SampleUnitRef    string  `json:"sampleUnitRef"`
+	Iac              string  `json:"iac"`
+	CaseGroupStatus  string  `json:"caseGroupStatus"`
+	EnrolmentStatus  string  `json:"enrolmentStatus"`
+	RespondentStatus string  `json:"respondentStatus"`
+	Contact          Contact `json:"contact"`
+	Region           string  `json:"region"`
 }
 
 type Contact struct {
-	Forename string `json:"forename"`
-	Surname string `json:"surname"`
+	Forename     string `json:"forename"`
+	Surname      string `json:"surname"`
 	EmailAddress string `json:"emailAddress"`
 }
 
@@ -64,7 +64,7 @@ func nullIfEmpty(value string) string {
 }
 
 func (pf *PrintFile) process(filename string) error {
-	pf.Status = Status {
+	pf.Status = Status{
 		TemplateComplete: false,
 		UploadedGCS:      false,
 		UploadedSFTP:     false,

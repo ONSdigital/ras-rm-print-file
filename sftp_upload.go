@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/pkg/sftp"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
-	log "github.com/sirupsen/logrus"
 )
 
 type SFTPUpload struct {
@@ -20,7 +20,7 @@ func (s *SFTPUpload) Init() error {
 	addr := host + ":" + port
 	config := &ssh.ClientConfig{
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //TODO remove this and check the key
-		User: viper.GetString("SFTP_USERNAME"),
+		User:            viper.GetString("SFTP_USERNAME"),
 		Auth: []ssh.AuthMethod{
 			ssh.Password(viper.GetString("SFTP_PASSWORD")),
 		},

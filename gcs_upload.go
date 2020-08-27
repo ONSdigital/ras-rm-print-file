@@ -10,7 +10,7 @@ import (
 )
 
 type GCSUpload struct {
-	ctx context.Context
+	ctx    context.Context
 	client *storage.Client
 }
 

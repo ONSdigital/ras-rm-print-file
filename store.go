@@ -10,6 +10,6 @@ func (s *Store) store(filename string, p *PrintFile) {
 }
 
 func (s *Store) update(p *PrintFile) {
- 	// update the status of the print file
+	// update the status of the print file
 	// we'll use this later for retry
 }
