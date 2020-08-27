@@ -57,11 +57,11 @@ func print(w http.ResponseWriter, r *http.Request) {
 func alive(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		log.Info("alive OK")
+		log.Debug("alive OK")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "{\"status\": \"OK\"}")
 	default:
-		log.Info("alive -method not allowed")
+		log.Debug("alive -method not allowed")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprint(w, "Only GET methods are supported")
 	}
@@ -70,11 +70,11 @@ func alive(w http.ResponseWriter, r *http.Request) {
 func ready(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		log.Info("ready OK")
+		log.Debug("ready OK")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "{\"status\": \"READY\"}")
 	default:
-		log.Info("ready - method not allowed")
+		log.Debug("ready - method not allowed")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprint(w, "Only GET methods are supported")
 	}

@@ -75,7 +75,7 @@ func (pf *PrintFile) process(filename string) error {
 		return err
 	}
 
-	log.WithField("template", printTemplate).WithField("filename", filename).Info("about to process template")
+	log.WithField("template", string(printTemplate)).WithField("filename", filename).Info("about to process template")
 	// create a bytes buffer and run the template engine
 	buf := &bytes.Buffer{}
 	err = t.Execute(buf, pf)
