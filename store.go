@@ -37,7 +37,7 @@ func (s *store) Init() error {
 	var err error
 	s.ctx = context.Background()
 	log.Info("initialising google datastore connection")
-	s.client, err = datastore.NewClient(s.ctx, viper.GetString("PROJECT_ID"))
+	s.client, err = datastore.NewClient(s.ctx, viper.GetString("GOOGLE_CLOUD_PROJECT"))
 	if err != nil {
 		log.WithError(err).Error("error creating gcp client")
 		return fmt.Errorf("datastore.NewClient: %v", err)

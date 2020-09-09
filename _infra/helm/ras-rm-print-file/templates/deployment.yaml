@@ -59,6 +59,8 @@ spec:
               value: {{.Values.verbose | quote }}
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/credentials.json
+            - name: GOOGLE_CLOUD_PROJECT
+              value: {{ .Values.gcp.project }}
             - name: SFTP_HOST
               {{- if .Values.sftp.test.enabled }}
               value: "$(SFTP_SERVICE_HOST)"

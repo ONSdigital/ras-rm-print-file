@@ -95,7 +95,7 @@ func configureLogging() {
 func setDefaults() {
 	viper.SetDefault("VERBOSE", true)
 	viper.SetDefault("BUCKET_NAME", "ras-rm-printfile")
-	viper.SetDefault("PROJECT_ID", "ras-rm-sandbox")
+	viper.SetDefault("GOOGLE_CLOUD_PROJECT", "ras-rm-sandbox")
 	viper.SetDefault("SFTP_HOST", "localhost")
 	viper.SetDefault("SFTP_PORT", "22")
 	viper.SetDefault("SFTP_USERNAME", "sftp")
