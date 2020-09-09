@@ -18,7 +18,7 @@ func TestPrintFile(t *testing.T) {
 
 	s := string(pj)
 	fmt.Println(s)
-	err := printfile.process()
+	err := printfile.process("test.csv")
 	assert.Nil(err)
 }
 
