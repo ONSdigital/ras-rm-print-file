@@ -105,14 +105,21 @@ func (pf *PrintFile) upload(filename string, buffer *bytes.Buffer) {
 	log.WithField("filename", filename).Info("uploading file")
 	// first upload to GCS
 	gcsUpload := &GCSUpload{}
-	gcsUpload.Init()
-	err := gcsUpload.UploadFile(filename, buffer.Bytes())
+	err := gcsUpload.Init()
 	if err != nil {
 		//TODO retry
 		pf.Status.UploadedGCS = false
 	} else {
 		pf.Status.UploadedGCS = true
+		err = gcsUpload.UploadFile(filename, buffer.Bytes())
+		if err != nil {
+			//TODO retry
+			pf.Status.UploadedGCS = false
+		} else {
+			pf.Status.UploadedGCS = true
+		}
 	}
+	
 	// and then to SFTP
 	sftpUpload := SFTPUpload{}
 	err = sftpUpload.Init()
