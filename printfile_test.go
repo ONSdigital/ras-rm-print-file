@@ -8,6 +8,7 @@ import (
 )
 
 func TestPrintFile(t *testing.T) {
+	setDefaults()
 
 	assert := assert.New(t)
 
