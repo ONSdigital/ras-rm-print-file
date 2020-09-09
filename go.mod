@@ -3,6 +3,7 @@ module github.com/ONSdigital/ras-rm-print-file
 go 1.14
 
 require (
+	cloud.google.com/go/datastore v1.1.0
 	cloud.google.com/go/storage v1.10.0
 	github.com/gorilla/mux v1.8.0
 	github.com/pkg/sftp v1.12.0

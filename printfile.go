@@ -14,14 +14,8 @@ var (
 
 type PrintFile struct {
 	PrintFiles []*PrintFileEntry
-	Status     Status `json:"-"`
 }
 
-type Status struct {
-	TemplateComplete bool
-	UploadedGCS      bool
-	UploadedSFTP     bool
-}
 
 type PrintFileEntry struct {
 	SampleUnitRef    string  `json:"sampleUnitRef"`
@@ -63,16 +57,15 @@ func nullIfEmpty(value string) string {
 	return value
 }
 
-func (pf *PrintFile) process(filename string) error {
-	pf.Status = Status{
-		TemplateComplete: false,
-		UploadedGCS:      false,
-		UploadedSFTP:     false,
-	}
+func (pf *PrintFile) process(str Store, filename string) error {
 	log.WithField("filename", filename).Info("processing print file")
 	// first save the request to the DB
-	store := &Store{}
-	store.store(filename, pf)
+	str.Init()
+	pfr, err := str.store(filename, pf)
+	if err != nil {
+		log.WithError(err).Error("unable to store print file request ")
+		return err
+	}
 
 	// first sanitise the data
 	pf.sanitise()
@@ -94,43 +87,49 @@ func (pf *PrintFile) process(filename string) error {
 		log.WithError(err).Error("failed to process template")
 		return nil
 	}
-	pf.Status.TemplateComplete = true
+	pfr.Status.TemplateComplete = true
 	log.WithField("template", printTemplate).WithField("filename", filename).Info("templating complete")
-	pf.upload(filename, buf)
-	store.update(pf)
+
+	err = pf.uploadGCS(filename, buf)
+	if err != nil {
+		pfr.Status.UploadedGCS = false
+	} else {
+		pfr.Status.UploadedGCS = true
+	}
+	err = pf.uploadSFTP(filename, buf)
+	if err != nil {
+		pfr.Status.UploadedGCS = false
+	} else {
+		pfr.Status.UploadedGCS = true
+	}
+
+	err = str.update(pfr)
+	if err != nil {
+		log.WithError(err).Error("failed to update database")
+		//TODO set to not ready
+		return err
+	}
 	return nil
 }
 
-func (pf *PrintFile) upload(filename string, buffer *bytes.Buffer) {
-	log.WithField("filename", filename).Info("uploading file")
+func (pf *PrintFile) uploadGCS(filename string, buffer *bytes.Buffer) error {
+	log.WithField("filename", filename).Info("uploading file to gcs")
 	// first upload to GCS
 	gcsUpload := &GCSUpload{}
 	err := gcsUpload.Init()
 	if err != nil {
-		//TODO retry
-		pf.Status.UploadedGCS = false
-	} else {
-		pf.Status.UploadedGCS = true
-		err = gcsUpload.UploadFile(filename, buffer.Bytes())
-		if err != nil {
-			//TODO retry
-			pf.Status.UploadedGCS = false
-		} else {
-			pf.Status.UploadedGCS = true
-		}
+		return err
 	}
-	
+	return gcsUpload.UploadFile(filename, buffer.Bytes())
+}
+
+func (pf *PrintFile) uploadSFTP(filename string, buffer *bytes.Buffer) error {
+	log.WithField("filename", filename).Info("uploading file to sftp")
 	// and then to SFTP
 	sftpUpload := SFTPUpload{}
-	err = sftpUpload.Init()
+	err := sftpUpload.Init()
 	if err != nil {
-		pf.Status.UploadedSFTP = false
-		return
+		return err
 	}
-	err = sftpUpload.UploadFile(filename, buffer.Bytes())
-	if err != nil {
-		//TODO retry
-		pf.Status.UploadedSFTP = false
-	}
-	pf.Status.UploadedSFTP = true
+	return sftpUpload.UploadFile(filename, buffer.Bytes())
 }

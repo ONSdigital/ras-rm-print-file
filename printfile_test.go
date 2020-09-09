@@ -5,21 +5,41 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
+
+type FakeStore struct {}
+
+func (s *FakeStore) Init() error {
+	return nil
+}
+
+func (s *FakeStore) store(filename string, p *PrintFile) (*PrintFileRequest, error) {
+	return &PrintFileRequest{
+		printFile: p,
+		filename:  filename,
+		created:   time.Time{},
+		Status:    Status{},
+	}, nil
+}
+
+func (s *FakeStore) update(pfr *PrintFileRequest) error {
+	return nil
+}
 
 func TestPrintFile(t *testing.T) {
 	setDefaults()
 
 	assert := assert.New(t)
 
-	printfile := &PrintFile{
+	printFile := &PrintFile{
 		PrintFiles: createPrintFileEntries(1),
 	}
-	pj, _ := json.Marshal(printfile)
+	pj, _ := json.Marshal(printFile)
 
 	s := string(pj)
 	fmt.Println(s)
-	err := printfile.process("test.csv")
+	err := printFile.process(&FakeStore{}, "test.csv")
 	assert.Nil(err)
 }
 

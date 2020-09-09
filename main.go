@@ -46,7 +46,8 @@ func print(w http.ResponseWriter, r *http.Request) {
 		resp, _ := json.Marshal(printFile)
 		log.WithField("print_file", string(resp)).Debug("about to process")
 		//spawn a process to process the printfile
-		go printFile.process(filename)
+		store := &store{}
+		go printFile.process(store, filename)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		log.Info("print - method not allowed")
@@ -94,6 +95,7 @@ func configureLogging() {
 func setDefaults() {
 	viper.SetDefault("VERBOSE", true)
 	viper.SetDefault("BUCKET_NAME", "ras-rm-printfile")
+	viper.SetDefault("PROJECT_ID", "ras-rm-sandbox")
 	viper.SetDefault("SFTP_HOST", "localhost")
 	viper.SetDefault("SFTP_PORT", "22")
 	viper.SetDefault("SFTP_USERNAME", "sftp")
