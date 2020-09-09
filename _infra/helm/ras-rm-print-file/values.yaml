@@ -27,6 +27,6 @@ sftp:
     enabled: true
 
 gcp:
-  project: rm-ras-sandbox
+  project: ras-rm-sandbox
   bucket:
     name: ras-rm-print-file

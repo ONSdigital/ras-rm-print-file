@@ -42,7 +42,7 @@ func (s *store) Init() error {
 		log.WithError(err).Error("error creating gcp client")
 		return fmt.Errorf("datastore.NewClient: %v", err)
 	}
-	log.Info("connected to GCS")
+	log.Info("connected to google datastore")
 	return nil
 }
 
