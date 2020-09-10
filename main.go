@@ -81,18 +81,18 @@ func ready(w http.ResponseWriter, r *http.Request) {
 }
 
 func configureLogging() {
-	verbose := viper.GetBool("VERBOSE")
-	if verbose {
-		//anything debug and above
-		log.SetLevel(log.DebugLevel)
-	} else {
-		//otherwise keep it to info
-		log.SetLevel(log.InfoLevel)
+	logLevel := viper.GetString("LOG_LEVEL")
+	level, err := log.ParseLevel(logLevel)
+	if err != nil {
+		log.WithError(err).WithField("logLevel", logLevel).Error("invalid log level")
+		//default to debug
+		level = log.DebugLevel
 	}
+	log.SetLevel(level)
 }
 
 func setDefaults() {
-	viper.SetDefault("VERBOSE", true)
+	viper.SetDefault("LOG_LEVE", "debug")
 	viper.SetDefault("BUCKET_NAME", "ras-rm-printfile")
 	viper.SetDefault("GOOGLE_CLOUD_PROJECT", "ras-rm-sandbox")
 	viper.SetDefault("SFTP_HOST", "localhost")
@@ -113,6 +113,7 @@ func main() {
 	configure()
 	log.Info("starting ras-rm-print-file")
 
+	//configure the gorilla router
 	r := mux.NewRouter()
 	r.Use(middleware)
 	r.HandleFunc("/print/{filename}", print)

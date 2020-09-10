@@ -19,7 +19,8 @@ container:
 service:
   port: 8080
 
-verbose: true
+log:
+  level: debug
 
 sftp:
   directory: /home/demo/sftp
