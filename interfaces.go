@@ -2,8 +2,8 @@ package main
 
 type Store interface {
 	Init() error
-	store(filename string, p *PrintFile) (*PrintFileRequest, error)
-	update(pfr *PrintFileRequest) error
+	Add(filename string, p *PrintFile) (*PrintFileRequest, error)
+	Update(pfr *PrintFileRequest) error
 }
 
 type Upload interface {

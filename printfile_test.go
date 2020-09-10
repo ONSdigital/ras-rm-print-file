@@ -14,7 +14,7 @@ func (s *FakeStore) Init() error {
 	return nil
 }
 
-func (s *FakeStore) store(filename string, p *PrintFile) (*PrintFileRequest, error) {
+func (s *FakeStore) Add(filename string, p *PrintFile) (*PrintFileRequest, error) {
 	return &PrintFileRequest{
 		printFile: p,
 		filename:  filename,
@@ -23,7 +23,20 @@ func (s *FakeStore) store(filename string, p *PrintFile) (*PrintFileRequest, err
 	}, nil
 }
 
-func (s *FakeStore) update(pfr *PrintFileRequest) error {
+func (s *FakeStore) Update(pfr *PrintFileRequest) error {
+	return nil
+}
+
+type FakeUpload struct {}
+
+func (u *FakeUpload) Init() error {
+	return nil
+}
+
+func (u *FakeUpload) Close() {
+
+}
+func (u *FakeUpload) UploadFile(filename string, contents []byte) error {
 	return nil
 }
 
@@ -39,7 +52,13 @@ func TestPrintFile(t *testing.T) {
 
 	s := string(pj)
 	fmt.Println(s)
-	err := process(&FakeStore{}, "test.csv", printFile)
+
+	processor := &Processor{
+		&FakeStore{},
+		&FakeUpload{},
+		&FakeUpload{},
+	}
+	err := processor.process("test.csv", printFile)
 	assert.Nil(err)
 }
 

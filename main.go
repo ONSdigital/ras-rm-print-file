@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -47,82 +46,13 @@ func print(w http.ResponseWriter, r *http.Request) {
 		resp, _ := json.Marshal(printFile)
 		log.WithField("print_file", string(resp)).Debug("about to process")
 		//spawn a process to process the printfile
-		store := &store{}
-		go process(store, filename, &printFile)
+		go Process(filename, &printFile)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		log.Info("print - method not allowed")
 		fmt.Fprintf(w, "Only POST methods are supported.")
 	}
 }
-
-
-
-func process(store Store, filename string, pf *PrintFile) error {
-	log.WithField("filename", filename).Info("processing print file")
-	// first save the request to the DB
-	store.Init()
-	pfr, err := store.store(filename, pf)
-	if err != nil {
-		log.WithError(err).Error("unable to store print file request ")
-		return err
-	}
-
-	// first sanitise the data
-	pf.sanitise()
-
-	// load the ApplyTemplate
-	buf, err := pf.ApplyTemplate(filename)
-	if err != nil {
-		return err
-	}
-	pfr.Status.TemplateComplete = true
-	log.WithField("ApplyTemplate", printTemplate).WithField("filename", filename).Info("templating complete")
-
-	err = uploadGCS(filename, buf)
-	if err != nil {
-		pfr.Status.UploadedGCS = false
-	} else {
-		pfr.Status.UploadedGCS = true
-	}
-	err = uploadSFTP(filename, buf)
-	if err != nil {
-		pfr.Status.UploadedGCS = false
-	} else {
-		pfr.Status.UploadedGCS = true
-	}
-
-	err = store.update(pfr)
-	if err != nil {
-		log.WithError(err).Error("failed to update database")
-		//TODO set to not ready
-		return err
-	}
-	return nil
-}
-
-func uploadGCS(filename string, buffer *bytes.Buffer) error {
-	log.WithField("filename", filename).Info("uploading file to gcs")
-	// first upload to GCS
-	gcsUpload := &GCSUpload{}
-	err := gcsUpload.Init()
-	if err != nil {
-		return err
-	}
-	return gcsUpload.UploadFile(filename, buffer.Bytes())
-}
-
-func uploadSFTP(filename string, buffer *bytes.Buffer) error {
-	log.WithField("filename", filename).Info("uploading file to sftp")
-	// and then to SFTP
-	sftpUpload := SFTPUpload{}
-	err := sftpUpload.Init()
-	if err != nil {
-		return err
-	}
-	return sftpUpload.UploadFile(filename, buffer.Bytes())
-}
-
 
 func alive(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {

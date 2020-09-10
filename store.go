@@ -22,12 +22,12 @@ type Status struct {
 	UploadedSFTP     bool
 }
 
-type store struct {
+type DataStore struct {
 	ctx    context.Context
 	client *datastore.Client
 }
 
-func (s *store) Init() error {
+func (s *DataStore) Init() error {
 	var err error
 	s.ctx = context.Background()
 	log.Info("initialising google datastore connection")
@@ -41,8 +41,8 @@ func (s *store) Init() error {
 
 }
 
-func (s *store) store(filename string, p *PrintFile) (*PrintFileRequest, error) {
-	// store the initial response and the name of the file
+func (s *DataStore) Add(filename string, p *PrintFile) (*PrintFileRequest, error) {
+	// DataStore the initial response and the name of the file
 	// we're meant to create
 	key := datastore.NameKey("PrintFileRequest", filename, nil)
 	pfr := &PrintFileRequest {
@@ -62,19 +62,19 @@ func (s *store) store(filename string, p *PrintFile) (*PrintFileRequest, error) 
 		if err := tx.Get(key, &empty); err != datastore.ErrNoSuchEntity {
 			return err
 		}
-		// If there was no matching entity, store it now.
+		// If there was no matching entity, DataStore it now.
 		_, err := tx.Put(key, pfr)
 		return err
 	})
 
 	if err != nil {
-		log.WithError(err).Error("unable to store entry")
-		return nil, fmt.Errorf("unable to to store entry: %v", err)
+		log.WithError(err).Error("unable to DataStore entry")
+		return nil, fmt.Errorf("unable to to DataStore entry: %v", err)
 	}
 	return pfr, nil
 }
 
-func (s *store) update(pfr *PrintFileRequest) error {
+func (s *DataStore) Update(pfr *PrintFileRequest) error {
 	key := datastore.NameKey("PrintFileRequest", pfr.filename, nil)
 	tx, err := s.client.NewTransaction(s.ctx)
 	if err != nil {
@@ -82,7 +82,7 @@ func (s *store) update(pfr *PrintFileRequest) error {
 		return err
 	}
 	if _, err := tx.Put(key, pfr); err != nil {
-		log.WithError(err).Error("unable to update entity")
+		log.WithError(err).Error("unable to Update entity")
 		return err
 	}
 	if _, err := tx.Commit(); err != nil {
