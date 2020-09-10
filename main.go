@@ -12,6 +12,7 @@ import (
 
 func middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Debug("setting content type to application/json")
 		w.Header().Add("Content-Type", "application/json")
 		next.ServeHTTP(w, r)
 	})
@@ -20,16 +21,18 @@ func middleware(next http.Handler) http.Handler {
 func print(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
+		log.Debug("post request received processing")
 		reqBody, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.WithError(err).Error("unable to read body")
 			w.WriteHeader(http.StatusInternalServerError)
 		}
+		log.WithField("reqBody", reqBody).Debug("body of request")
 		vars := mux.Vars(r)
 		filename := vars["filename"]
 		if filename == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintln(w, "Missing filename")
+			fmt.Fprintln(w, "missing filename")
 		}
 		log.WithField("filename", filename).Info("received request to print file")
 		var printFileEntries []*PrintFileEntry
@@ -44,8 +47,8 @@ func print(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(http.StatusAccepted)
 		resp, _ := json.Marshal(printFile)
-		log.WithField("print_file", string(resp)).Debug("about to process")
-		//spawn a process to process the printfile
+		log.WithField("resp", string(resp)).Debug("about to process")
+		//spawn a process to process the print file
 		go Process(filename, &printFile)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -89,10 +92,11 @@ func configureLogging() {
 		level = log.DebugLevel
 	}
 	log.SetLevel(level)
+	log.WithField("level", logLevel).Debug("log level set")
 }
 
 func setDefaults() {
-	viper.SetDefault("LOG_LEVE", "debug")
+	viper.SetDefault("LOG_LEVEL", "debug")
 	viper.SetDefault("BUCKET_NAME", "ras-rm-printfile")
 	viper.SetDefault("GOOGLE_CLOUD_PROJECT", "ras-rm-sandbox")
 	viper.SetDefault("SFTP_HOST", "localhost")
