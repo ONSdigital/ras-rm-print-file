@@ -22,11 +22,16 @@ func Process(filename string, printFile *PrintFile) error {
 
 func (p *Processor) process(filename string, printFile *PrintFile) error {
 	log.WithField("filename", filename).Info("processing print file")
+
 	// first save the request to the DB
-	p.store.Init()
+	err := p.store.Init()
+	if err != nil {
+		log.WithError(err).Error("unable to initialise storage")
+		return err
+	}
 	pfr, err := p.store.Add(filename, printFile)
 	if err != nil {
-		log.WithError(err).Error("unable to DataStore print file request ")
+		log.WithError(err).Error("unable to store print file request ")
 		return err
 	}
 
@@ -41,9 +46,11 @@ func (p *Processor) process(filename string, printFile *PrintFile) error {
 	pfr.Status.TemplateComplete = true
 	log.WithField("ApplyTemplate", printTemplate).WithField("filename", filename).Info("templating complete")
 
-	pfr.Status.UploadedGCS = p.uploadGCS(filename, buf)
+	// first upload to GCS
+	pfr.Status.UploadedGCS = upload(filename, buf, p.gcsUpload, "gcs")
 
-	pfr.Status.UploadedSFTP = p.uploadSFTP(filename, buf)
+	// and then to SFTP
+	pfr.Status.UploadedSFTP = upload(filename, buf, p.sftpUpload, "sftp")
 
 	err = p.store.Update(pfr)
 	if err != nil {
@@ -54,34 +61,18 @@ func (p *Processor) process(filename string, printFile *PrintFile) error {
 	return nil
 }
 
-func (p *Processor) uploadGCS(filename string, buffer *bytes.Buffer) bool {
-	log.WithField("filename", filename).Info("uploading file to gcs")
-	// first upload to GCS
-	err := p.gcsUpload.Init()
+func upload(filename string, buffer *bytes.Buffer, uploader Upload, name string) bool {
+	log.WithField("filename", filename).Infof("uploading file to %v", name)
+	err := uploader.Init()
 	if err != nil {
-		log.WithError(err).Error("failed to initialise GCS upload")
+		log.WithError(err).Errorf("failed to initialise %v upload", name)
 		return false
 	}
-	err = p.gcsUpload.UploadFile(filename, buffer.Bytes())
+	err = uploader.UploadFile(filename, buffer.Bytes())
 	if err != nil {
-		log.WithError(err).Error("failed to upload to GCS")
+		log.WithError(err).Errorf("failed to upload to %v", name)
 		return false
 	}
 	return true
 }
 
-func (p *Processor) uploadSFTP(filename string, buffer *bytes.Buffer) bool {
-	log.WithField("filename", filename).Info("uploading file to sftp")
-	// and then to SFTP
-	err := p.sftpUpload.Init()
-	if err != nil {
-		log.WithError(err).Error("failed to initialise SFTP upload")
-		return false
-	}
-	err = p.sftpUpload.UploadFile(filename, buffer.Bytes())
-	if err != nil {
-		log.WithError(err).Error("failed to upload to SFTP")
-		return false
-	}
-	return true
-}
