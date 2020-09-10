@@ -39,7 +39,7 @@ func TestPrintFile(t *testing.T) {
 
 	s := string(pj)
 	fmt.Println(s)
-	err := printFile.process(&FakeStore{}, "test.csv")
+	err := process(&FakeStore{}, "test.csv", printFile)
 	assert.Nil(err)
 }
 

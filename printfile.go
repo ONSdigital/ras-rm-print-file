@@ -57,79 +57,24 @@ func nullIfEmpty(value string) string {
 	return value
 }
 
-func (pf *PrintFile) process(str Store, filename string) error {
-	log.WithField("filename", filename).Info("processing print file")
-	// first save the request to the DB
-	str.Init()
-	pfr, err := str.store(filename, pf)
-	if err != nil {
-		log.WithError(err).Error("unable to store print file request ")
-		return err
-	}
-
-	// first sanitise the data
-	pf.sanitise()
-
-	// load the template
-	log.WithField("template", printTemplate).Info("about to load template")
+func (pf *PrintFile) ApplyTemplate(filename string) (*bytes.Buffer, error) {
+	// load the ApplyTemplate
+	log.WithField("ApplyTemplate", printTemplate).Info("about to load ApplyTemplate")
 	t, err := template.New(printTemplate).ParseFiles(printTemplate)
 	if err != nil {
-		log.WithError(err).Error("failed to find template")
+		log.WithError(err).Error("failed to find ApplyTemplate")
 		//TODO set to not ready
-		return err
+		return nil, err
 	}
 
-	log.WithField("template", printTemplate).WithField("filename", filename).Info("about to process template")
-	// create a bytes buffer and run the template engine
+	log.WithField("ApplyTemplate", printTemplate).WithField("filename", filename).Info("about to process ApplyTemplate")
+	// create a bytes buffer and run the ApplyTemplate engine
 	buf := &bytes.Buffer{}
 	err = t.Execute(buf, pf)
 	if err != nil {
-		log.WithError(err).Error("failed to process template")
-		return nil
+		log.WithError(err).Error("failed to process ApplyTemplate")
+		return nil, err
 	}
-	pfr.Status.TemplateComplete = true
-	log.WithField("template", printTemplate).WithField("filename", filename).Info("templating complete")
-
-	err = pf.uploadGCS(filename, buf)
-	if err != nil {
-		pfr.Status.UploadedGCS = false
-	} else {
-		pfr.Status.UploadedGCS = true
-	}
-	err = pf.uploadSFTP(filename, buf)
-	if err != nil {
-		pfr.Status.UploadedGCS = false
-	} else {
-		pfr.Status.UploadedGCS = true
-	}
-
-	err = str.update(pfr)
-	if err != nil {
-		log.WithError(err).Error("failed to update database")
-		//TODO set to not ready
-		return err
-	}
-	return nil
-}
-
-func (pf *PrintFile) uploadGCS(filename string, buffer *bytes.Buffer) error {
-	log.WithField("filename", filename).Info("uploading file to gcs")
-	// first upload to GCS
-	gcsUpload := &GCSUpload{}
-	err := gcsUpload.Init()
-	if err != nil {
-		return err
-	}
-	return gcsUpload.UploadFile(filename, buffer.Bytes())
-}
-
-func (pf *PrintFile) uploadSFTP(filename string, buffer *bytes.Buffer) error {
-	log.WithField("filename", filename).Info("uploading file to sftp")
-	// and then to SFTP
-	sftpUpload := SFTPUpload{}
-	err := sftpUpload.Init()
-	if err != nil {
-		return err
-	}
-	return sftpUpload.UploadFile(filename, buffer.Bytes())
+	log.WithField("ApplyTemplate", printTemplate).WithField("filename", filename).Info("templating complete")
+	return buf, nil
 }

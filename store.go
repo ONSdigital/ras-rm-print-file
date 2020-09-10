@@ -10,7 +10,7 @@ import (
 )
 
 type PrintFileRequest struct {
-	//printFile *PrintFile
+	printFile *PrintFile
 	filename string
 	created time.Time
 	Status     Status
@@ -20,12 +20,6 @@ type Status struct {
 	TemplateComplete bool
 	UploadedGCS      bool
 	UploadedSFTP     bool
-}
-
-type Store interface {
-	Init() error
-	store(filename string, p *PrintFile) (*PrintFileRequest, error)
-	update(pfr *PrintFileRequest) error
 }
 
 type store struct {
@@ -52,7 +46,7 @@ func (s *store) store(filename string, p *PrintFile) (*PrintFileRequest, error) 
 	// we're meant to create
 	key := datastore.NameKey("PrintFileRequest", filename, nil)
 	pfr := &PrintFileRequest {
-		//p,
+		p,
 		filename,
 		time.Now(),
 		Status {
