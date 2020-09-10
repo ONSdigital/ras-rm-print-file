@@ -10,7 +10,7 @@ import (
 )
 
 type PrintFileRequest struct {
-	printFile *PrintFile
+	//printFile *PrintFile
 	filename string
 	created time.Time
 	Status     Status
@@ -44,6 +44,7 @@ func (s *store) Init() error {
 	}
 	log.Info("connected to google datastore")
 	return nil
+
 }
 
 func (s *store) store(filename string, p *PrintFile) (*PrintFileRequest, error) {
@@ -51,7 +52,7 @@ func (s *store) store(filename string, p *PrintFile) (*PrintFileRequest, error) 
 	// we're meant to create
 	key := datastore.NameKey("PrintFileRequest", filename, nil)
 	pfr := &PrintFileRequest {
-		p,
+		//p,
 		filename,
 		time.Now(),
 		Status {
@@ -68,7 +69,7 @@ func (s *store) store(filename string, p *PrintFile) (*PrintFileRequest, error) 
 			return err
 		}
 		// If there was no matching entity, store it now.
-		_, err := tx.Put(key, &pfr)
+		_, err := tx.Put(key, pfr)
 		return err
 	})
 
