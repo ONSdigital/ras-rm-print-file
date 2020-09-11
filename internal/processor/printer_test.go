@@ -64,3 +64,64 @@ func createPrintFileEntries(count int) []*pkg.PrintFileEntry {
 	}
 	return entries
 }
+
+func TestSanitise(t *testing.T) {
+	assert := assert.New(t)
+
+	entry := &pkg.PrintFileEntry{
+		SampleUnitRef:    "10001 ",
+		Iac:              "ai9bt497r7bn ",
+		CaseGroupStatus:  "",
+		EnrolmentStatus:  "",
+		RespondentStatus: "",
+		Contact: pkg.Contact{
+			Forename:     "",
+			Surname:      "",
+			EmailAddress: "",
+		},
+		Region: "",
+	}
+	entries := []*pkg.PrintFileEntry{entry}
+	printFile := &pkg.PrintFile{
+		 PrintFiles: entries,
+	}
+	sanitise(printFile)
+
+	assert.Equal("10001", printFile.PrintFiles[0].SampleUnitRef)
+	assert.Equal("ai9bt497r7bn", printFile.PrintFiles[0].Iac)
+	assert.Equal("null", printFile.PrintFiles[0].CaseGroupStatus)
+	assert.Equal("null", printFile.PrintFiles[0].EnrolmentStatus)
+	assert.Equal("null", printFile.PrintFiles[0].RespondentStatus)
+	assert.Equal("null", printFile.PrintFiles[0].Contact.Forename)
+	assert.Equal("null", printFile.PrintFiles[0].Contact.Surname)
+	assert.Equal("null", printFile.PrintFiles[0].Contact.EmailAddress)
+	assert.Equal("null", printFile.PrintFiles[0].Region)
+}
+
+func TestNullIfEmpty(t *testing.T) {
+	assert := assert.New(t)
+	assert.Equal("null", nullIfEmpty(""))
+	assert.Equal("test", nullIfEmpty("test"))
+}
+
+func TestApplyTemplate(t *testing.T) {
+	assert := assert.New(t)
+
+	printFile := &pkg.PrintFile{
+		PrintFiles: createPrintFileEntries(1),
+	}
+
+	buffer, err := applyTemplate(printFile)
+	assert.Nil(err)
+	assert.Equal("10001:ai9bt497r7bn:NOTSTARTED:::Jon:Snow:jon.snow@example.com:HH", buffer.String())
+}
+
+func TestApplyTemplateEmptyPrintFile(t *testing.T) {
+	assert := assert.New(t)
+
+	printFile := &pkg.PrintFile{}
+
+	buffer, err := applyTemplate(printFile)
+	assert.Nil(err)
+	assert.Equal("", buffer.String())
+}

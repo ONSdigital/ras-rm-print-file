@@ -2,7 +2,6 @@ package processor
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/ONSdigital/ras-rm-print-file/internal/database"
 	"github.com/ONSdigital/ras-rm-print-file/internal/gcs"
 	"github.com/ONSdigital/ras-rm-print-file/internal/sftp"
@@ -48,7 +47,7 @@ func (p *Printer) process(filename string, printFile *pkg.PrintFile) error {
 	sanitise(printFile)
 
 	// load the ApplyTemplate
-	buf, err := applyTemplate(printFile, filename)
+	buf, err := applyTemplate(printFile)
 	if err != nil {
 		return err
 	}
@@ -97,19 +96,18 @@ func sanitise(pf *pkg.PrintFile) {
 		pfe.Contact.Surname = nullIfEmpty(pfe.Contact.Surname)
 		pfe.Contact.EmailAddress = nullIfEmpty(pfe.Contact.EmailAddress)
 		pfe.Region = nullIfEmpty(pfe.Region)
-		fmt.Print(pfe)
 	}
 }
 
 func nullIfEmpty(value string) string {
 	if value == "" {
-		log.WithField("value", value).Debug("empty value replacing with null")
+		log.Debug("empty value replacing with null")
 		return "null"
 	}
 	return value
 }
 
-func applyTemplate(pf *pkg.PrintFile, filename string) (*bytes.Buffer, error) {
+func applyTemplate(pf *pkg.PrintFile) (*bytes.Buffer, error) {
 	//find the template
 	wd, err := os.Getwd()
 	if err != nil {
@@ -123,11 +121,10 @@ func applyTemplate(pf *pkg.PrintFile, filename string) (*bytes.Buffer, error) {
 	t, err := template.New(printTemplate).ParseFiles(templateLocation)
 	if err != nil {
 		log.WithError(err).Error("failed to find ApplyTemplate")
-		//TODO set to not ready
 		return nil, err
 	}
 
-	log.WithField("ApplyTemplate", printTemplate).WithField("filename", filename).Info("about to process ApplyTemplate")
+	log.WithField("ApplyTemplate", printTemplate).Info("about to process ApplyTemplate")
 	// create a bytes buffer and run the ApplyTemplate engine
 	buf := &bytes.Buffer{}
 	err = t.Execute(buf, pf)
@@ -135,6 +132,6 @@ func applyTemplate(pf *pkg.PrintFile, filename string) (*bytes.Buffer, error) {
 		log.WithError(err).Error("failed to process ApplyTemplate")
 		return nil, err
 	}
-	log.WithField("ApplyTemplate", printTemplate).WithField("filename", filename).Info("templating complete")
+	log.WithField("ApplyTemplate", printTemplate).Info("templating complete")
 	return buf, nil
 }
