@@ -8,13 +8,12 @@ import (
 	"github.com/ONSdigital/ras-rm-print-file/internal/sftp"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	log "github.com/sirupsen/logrus"
+	"os"
 	"strings"
 	"text/template"
 )
 
-var (
-	printTemplate = "printfile.tmpl"
-)
+var printTemplate = "printfile.tmpl"
 
 type Printer struct {
 	store      pkg.Store
@@ -114,9 +113,17 @@ func nullIfEmpty(value string) string {
 }
 
 func applyTemplate(pf *pkg.PrintFile, filename string) (*bytes.Buffer, error) {
+	//find the template
+	wd, err := os.Getwd()
+	if err != nil {
+		log.WithError(err).Error("unable to load template")
+	}
+	// Template location
+	templateLocation := wd + "/templates/"+ printTemplate
+
 	// load the ApplyTemplate
 	log.WithField("ApplyTemplate", printTemplate).Info("about to load ApplyTemplate")
-	t, err := template.New(printTemplate).ParseFiles(printTemplate)
+	t, err := template.New(printTemplate).ParseFiles(templateLocation)
 	if err != nil {
 		log.WithError(err).Error("failed to find ApplyTemplate")
 		//TODO set to not ready

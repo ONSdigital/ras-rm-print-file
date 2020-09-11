@@ -28,7 +28,7 @@ func Print(w http.ResponseWriter, r *http.Request) {
 			logrus.WithError(err).Error("unable to read body")
 			w.WriteHeader(http.StatusInternalServerError)
 		}
-		logrus.WithField("reqBody", reqBody).Debug("body of request")
+		logrus.WithField("reqBody", string(reqBody)).Debug("body of request")
 		vars := mux.Vars(r)
 		filename := vars["filename"]
 		if filename == "" {
