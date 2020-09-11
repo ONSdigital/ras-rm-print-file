@@ -9,7 +9,6 @@ import (
 	"net/http"
 )
 
-
 func configure() {
 	//config
 	viper.AutomaticEnv()

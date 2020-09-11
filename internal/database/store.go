@@ -10,7 +10,6 @@ import (
 	"time"
 )
 
-
 type DataStore struct {
 	ctx    context.Context
 	client *datastore.Client

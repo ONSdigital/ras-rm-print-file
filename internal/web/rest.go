@@ -83,6 +83,3 @@ func Ready(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Only GET methods are supported")
 	}
 }
-
-
-

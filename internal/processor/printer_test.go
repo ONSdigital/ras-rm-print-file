@@ -1,48 +1,13 @@
 package processor
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/ONSdigital/ras-rm-print-file/internal/config"
 	mocks "github.com/ONSdigital/ras-rm-print-file/mocks/pkg"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
-	"time"
 )
-
-type FakeStore struct {}
-
-func (s *FakeStore) Init() error {
-	return nil
-}
-
-func (s *FakeStore) Add(filename string, p *pkg.PrintFile) (*pkg.PrintFileRequest, error) {
-	return &pkg.PrintFileRequest{
-		PrintFile: p,
-		Filename:  filename,
-		Created:   time.Time{},
-		Status:    pkg.Status{},
-	}, nil
-}
-
-func (s *FakeStore) Update(pfr *pkg.PrintFileRequest) error {
-	return nil
-}
-
-type FakeUpload struct {}
-
-func (u *FakeUpload) Init() error {
-	return nil
-}
-
-func (u *FakeUpload) Close() {
-
-}
-func (u *FakeUpload) UploadFile(filename string, contents []byte) error {
-	return nil
-}
 
 func TestProcess(t *testing.T) {
 	config.SetDefaults()
@@ -52,12 +17,8 @@ func TestProcess(t *testing.T) {
 	printFile := &pkg.PrintFile{
 		PrintFiles: createPrintFileEntries(1),
 	}
-	pj, _ := json.Marshal(printFile)
 
-	s := string(pj)
-	fmt.Println(s)
-
-	store :=  new(mocks.Store)
+	store := new(mocks.Store)
 	store.On("Init").Return(nil)
 	store.On("Add", mock.Anything, mock.Anything).Return(&pkg.PrintFileRequest{}, nil)
 	store.On("Update", mock.Anything).Return(nil)
@@ -70,7 +31,6 @@ func TestProcess(t *testing.T) {
 	sftpUpload.On("Init").Return(nil)
 	sftpUpload.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
 
-
 	processor := &Printer{
 		store,
 		gcsUpload,
@@ -78,6 +38,10 @@ func TestProcess(t *testing.T) {
 	}
 	err := processor.process("test.csv", printFile)
 	assert.Nil(err)
+
+	store.AssertExpectations(t)
+	gcsUpload.AssertExpectations(t)
+	sftpUpload.AssertExpectations(t)
 }
 
 func createPrintFileEntries(count int) []*pkg.PrintFileEntry {

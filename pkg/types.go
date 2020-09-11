@@ -6,7 +6,6 @@ type PrintFile struct {
 	PrintFiles []*PrintFileEntry
 }
 
-
 type PrintFileEntry struct {
 	SampleUnitRef    string  `json:"sampleUnitRef"`
 	Iac              string  `json:"iac"`

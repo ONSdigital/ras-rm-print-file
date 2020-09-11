@@ -21,7 +21,6 @@ type Printer struct {
 	sftpUpload pkg.Upload
 }
 
-
 func Process(filename string, printFile *pkg.PrintFile) error {
 	processor := &Printer{}
 	processor.store = &database.DataStore{}
@@ -86,8 +85,6 @@ func upload(filename string, buffer *bytes.Buffer, uploader pkg.Upload, name str
 	return true
 }
 
-
-
 func sanitise(pf *pkg.PrintFile) {
 	log.Info("sanitising print file to match expected outcomes")
 	for _, pfe := range pf.PrintFiles {
@@ -119,7 +116,7 @@ func applyTemplate(pf *pkg.PrintFile, filename string) (*bytes.Buffer, error) {
 		log.WithError(err).Error("unable to load template")
 	}
 	// Template location
-	templateLocation := wd + "/templates/"+ printTemplate
+	templateLocation := wd + "/templates/" + printTemplate
 
 	// load the ApplyTemplate
 	log.WithField("ApplyTemplate", printTemplate).Info("about to load ApplyTemplate")
@@ -141,4 +138,3 @@ func applyTemplate(pf *pkg.PrintFile, filename string) (*bytes.Buffer, error) {
 	log.WithField("ApplyTemplate", printTemplate).WithField("filename", filename).Info("templating complete")
 	return buf, nil
 }
-
