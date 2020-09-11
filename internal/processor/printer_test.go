@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ONSdigital/ras-rm-print-file/internal/config"
+	mocks "github.com/ONSdigital/ras-rm-print-file/mocks/pkg"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 	"time"
 )
@@ -55,10 +57,24 @@ func TestProcess(t *testing.T) {
 	s := string(pj)
 	fmt.Println(s)
 
+	store :=  new(mocks.Store)
+	store.On("Init").Return(nil)
+	store.On("Add", mock.Anything, mock.Anything).Return(&pkg.PrintFileRequest{}, nil)
+	store.On("Update", mock.Anything).Return(nil)
+
+	gcsUpload := new(mocks.Upload)
+	gcsUpload.On("Init").Return(nil)
+	gcsUpload.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
+
+	sftpUpload := new(mocks.Upload)
+	sftpUpload.On("Init").Return(nil)
+	sftpUpload.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
+
+
 	processor := &Printer{
-		&FakeStore{},
-		&FakeUpload{},
-		&FakeUpload{},
+		store,
+		gcsUpload,
+		sftpUpload,
 	}
 	err := processor.process("test.csv", printFile)
 	assert.Nil(err)
