@@ -1,4 +1,4 @@
-package main
+package gcs
 
 import (
 	"cloud.google.com/go/storage"

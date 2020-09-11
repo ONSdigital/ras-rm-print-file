@@ -1,4 +1,4 @@
-package main
+package pkg
 
 type Store interface {
 	Init() error

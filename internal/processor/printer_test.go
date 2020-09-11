@@ -1,9 +1,10 @@
-package main
-
+package processor
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ONSdigital/ras-rm-print-file/internal/config"
+	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -15,16 +16,16 @@ func (s *FakeStore) Init() error {
 	return nil
 }
 
-func (s *FakeStore) Add(filename string, p *PrintFile) (*PrintFileRequest, error) {
-	return &PrintFileRequest{
-		printFile: p,
-		filename:  filename,
-		created:   time.Time{},
-		Status:    Status{},
+func (s *FakeStore) Add(filename string, p *pkg.PrintFile) (*pkg.PrintFileRequest, error) {
+	return &pkg.PrintFileRequest{
+		PrintFile: p,
+		Filename:  filename,
+		Created:   time.Time{},
+		Status:    pkg.Status{},
 	}, nil
 }
 
-func (s *FakeStore) Update(pfr *PrintFileRequest) error {
+func (s *FakeStore) Update(pfr *pkg.PrintFileRequest) error {
 	return nil
 }
 
@@ -42,11 +43,11 @@ func (u *FakeUpload) UploadFile(filename string, contents []byte) error {
 }
 
 func TestProcess(t *testing.T) {
-	setDefaults()
+	config.SetDefaults()
 
 	assert := assert.New(t)
 
-	printFile := &PrintFile{
+	printFile := &pkg.PrintFile{
 		PrintFiles: createPrintFileEntries(1),
 	}
 	pj, _ := json.Marshal(printFile)
@@ -54,7 +55,7 @@ func TestProcess(t *testing.T) {
 	s := string(pj)
 	fmt.Println(s)
 
-	processor := &Processor{
+	processor := &Printer{
 		&FakeStore{},
 		&FakeUpload{},
 		&FakeUpload{},
@@ -63,16 +64,16 @@ func TestProcess(t *testing.T) {
 	assert.Nil(err)
 }
 
-func createPrintFileEntries(count int) []*PrintFileEntry {
-	entries := make([]*PrintFileEntry, count)
+func createPrintFileEntries(count int) []*pkg.PrintFileEntry {
+	entries := make([]*pkg.PrintFileEntry, count)
 	for i := 0; i < count; i++ {
-		entry := &PrintFileEntry{
+		entry := &pkg.PrintFileEntry{
 			SampleUnitRef:    "10001",
 			Iac:              "ai9bt497r7bn",
 			CaseGroupStatus:  "NOTSTARTED",
 			EnrolmentStatus:  "",
 			RespondentStatus: "",
-			Contact: Contact{
+			Contact: pkg.Contact{
 				Forename:     "Jon",
 				Surname:      "Snow",
 				EmailAddress: "jon.snow@example.com",

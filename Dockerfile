@@ -5,6 +5,5 @@ WORKDIR "/src"
 
 COPY . .
 
-RUN go build
-RUN ls
-CMD "./ras-rm-print-file"
+RUN go build -o build/ras-rm-print-file cmd/ras-rm-print-file/main.go
+CMD "./build/ras-rm-print-file"

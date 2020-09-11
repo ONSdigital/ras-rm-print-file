@@ -1,4 +1,4 @@
-package main
+package sftp
 
 import (
 	"github.com/pkg/sftp"

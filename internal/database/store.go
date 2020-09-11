@@ -1,26 +1,15 @@
-package main
+package database
 
 import (
 	"cloud.google.com/go/datastore"
 	"context"
 	"fmt"
+	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"time"
 )
 
-type PrintFileRequest struct {
-	printFile *PrintFile
-	filename string
-	created time.Time
-	Status     Status
-}
-
-type Status struct {
-	TemplateComplete bool
-	UploadedGCS      bool
-	UploadedSFTP     bool
-}
 
 type DataStore struct {
 	ctx    context.Context
@@ -41,15 +30,15 @@ func (s *DataStore) Init() error {
 
 }
 
-func (s *DataStore) Add(filename string, p *PrintFile) (*PrintFileRequest, error) {
+func (s *DataStore) Add(filename string, p *pkg.PrintFile) (*pkg.PrintFileRequest, error) {
 	// DataStore the initial response and the name of the file
 	// we're meant to create
 	key := datastore.NameKey("PrintFileRequest", filename, nil)
-	pfr := &PrintFileRequest {
-		p,
-		filename,
-		time.Now(),
-		Status {
+	pfr := &pkg.PrintFileRequest{
+		PrintFile: p,
+		Filename:  filename,
+		Created:   time.Now(),
+		Status: pkg.Status{
 			TemplateComplete: false,
 			UploadedGCS:      false,
 			UploadedSFTP:     false,
@@ -58,7 +47,7 @@ func (s *DataStore) Add(filename string, p *PrintFile) (*PrintFileRequest, error
 
 	_, err := s.client.RunInTransaction(s.ctx, func(tx *datastore.Transaction) error {
 		// We first check that there is no entity stored with the given key.
-		var empty PrintFileRequest
+		var empty pkg.PrintFileRequest
 		if err := tx.Get(key, &empty); err != datastore.ErrNoSuchEntity {
 			return err
 		}
@@ -74,8 +63,8 @@ func (s *DataStore) Add(filename string, p *PrintFile) (*PrintFileRequest, error
 	return pfr, nil
 }
 
-func (s *DataStore) Update(pfr *PrintFileRequest) error {
-	key := datastore.NameKey("PrintFileRequest", pfr.filename, nil)
+func (s *DataStore) Update(pfr *pkg.PrintFileRequest) error {
+	key := datastore.NameKey("PrintFileRequest", pfr.Filename, nil)
 	tx, err := s.client.NewTransaction(s.ctx)
 	if err != nil {
 		log.WithError(err).Error("unable to start transaction")
