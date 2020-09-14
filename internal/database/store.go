@@ -3,6 +3,7 @@ package database
 import (
 	"cloud.google.com/go/datastore"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	log "github.com/sirupsen/logrus"
@@ -30,6 +31,9 @@ func (s *DataStore) Init() error {
 }
 
 func (s *DataStore) Add(filename string, p *pkg.PrintFile) (*pkg.PrintFileRequest, error) {
+	if s.client == nil {
+		return nil, errors.New("please initialise the connection")
+	}
 	// DataStore the initial response and the name of the file
 	// we're meant to create
 	key := datastore.NameKey("PrintFileRequest", filename, nil)
@@ -63,6 +67,9 @@ func (s *DataStore) Add(filename string, p *pkg.PrintFile) (*pkg.PrintFileReques
 }
 
 func (s *DataStore) Update(pfr *pkg.PrintFileRequest) error {
+	if s.client == nil {
+		return errors.New("please initialise the connection")
+	}
 	key := datastore.NameKey("PrintFileRequest", pfr.Filename, nil)
 	tx, err := s.client.NewTransaction(s.ctx)
 	if err != nil {

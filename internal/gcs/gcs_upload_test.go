@@ -5,12 +5,6 @@ import (
 	"testing"
 )
 
-func TestInit(t *testing.T) {
-	gcs := GCSUpload{}
-	err := gcs.Init()
-	assert.Nil(t, err)
-}
-
 func TestCloseErrorsWithNoConnection(t *testing.T) {
 	gcs := GCSUpload{}
 	err := gcs.Close()
