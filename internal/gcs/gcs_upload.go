@@ -3,6 +3,7 @@ package gcs
 import (
 	"cloud.google.com/go/storage"
 	"context"
+	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -27,14 +28,21 @@ func (u *GCSUpload) Init() error {
 	return nil
 }
 
-func (u *GCSUpload) Close() {
+func (u *GCSUpload) Close() error {
+	if u.client == nil {
+		return errors.New("please initialise the connection")
+	}
 	log.Info("closing connection to GCS")
-	u.client.Close()
+	err := u.client.Close()
 	log.Info("GCS connection closed")
+	return err
 }
 
 // uploadFile uploads an object.
 func (u *GCSUpload) UploadFile(filename string, contents []byte) error {
+	if u.client == nil {
+		return errors.New("please initialise the connection")
+	}
 	bucket := viper.GetString("BUCKET_NAME")
 	log.WithField("filename", filename).WithField("bucket", bucket).Info("uploading to bucket")
 

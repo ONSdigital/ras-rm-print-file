@@ -1,6 +1,7 @@
 package sftp
 
 import (
+	"errors"
 	"github.com/pkg/sftp"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -13,11 +14,7 @@ type SFTPUpload struct {
 
 func (s *SFTPUpload) Init() error {
 	var err error
-	host := viper.GetString("SFTP_HOST")
-	port := viper.GetString("SFTP_PORT")
-	log.WithField("host", host).WithField("port", port).Info("initialising sftp connection")
-
-	addr := host + ":" + port
+	addr := createSFTPAddress()
 	config := &ssh.ClientConfig{
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //TODO remove this and check the key
 		User:            viper.GetString("SFTP_USERNAME"),
@@ -34,18 +31,35 @@ func (s *SFTPUpload) Init() error {
 	return nil
 }
 
-func (s *SFTPUpload) Close() {
+func createSFTPAddress() string {
+	host := viper.GetString("SFTP_HOST")
+	port := viper.GetString("SFTP_PORT")
+	log.WithField("host", host).WithField("port", port).Info("initialising sftp connection")
+
+	addr := host + ":" + port
+	return addr
+}
+
+func (s *SFTPUpload) Close() error {
 	log.Info("closing connection to SFTP")
-	s.conn.Close()
+	if s.conn == nil {
+		return errors.New("please initialise connection")
+	}
+	err := s.conn.Close()
 	log.Info("sftp connection closed")
+	return err
 }
 
 func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
 	log.WithField("filename", filename).Info("uploading to SFTP server")
+	if s.conn == nil {
+		return errors.New("please initialise connection")
+	}
 	// open an SFTP session over an existing ssh connection.
 	client, err := sftp.NewClient(s.conn)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return err
 	}
 	defer client.Close()
 

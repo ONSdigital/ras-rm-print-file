@@ -8,6 +8,6 @@ type Store interface {
 
 type Upload interface {
 	Init() error
-	Close()
+	Close() error
 	UploadFile(filename string, contents []byte) error
 }

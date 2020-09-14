@@ -1,15 +1,24 @@
 package gcs
 
-import "testing"
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
 func TestInit(t *testing.T) {
-
+	gcs := GCSUpload{}
+	err := gcs.Init()
+	assert.Nil(t, err)
 }
 
-func TestClose(t *testing.T) {
-
+func TestCloseErrorsWithNoConnection(t *testing.T) {
+	gcs := GCSUpload{}
+	err := gcs.Close()
+	assert.NotNil(t, err)
 }
 
-func TestUploadFile(t *testing.T) {
-
+func TestUploadFileErrorsWithNoConnection(t *testing.T) {
+	gcs := GCSUpload{}
+	err := gcs.UploadFile("test", []byte("test"))
+	assert.NotNil(t, err)
 }
