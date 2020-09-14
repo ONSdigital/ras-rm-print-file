@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	log "github.com/sirupsen/logrus"
@@ -7,8 +7,8 @@ import (
 	"testing"
 )
 
-func TestConfigure(t *testing.T) {
-	configure()
+func TestSetDefaults(t *testing.T) {
+	SetDefaults()
 	assert := assert.New(t)
 
 	assert.Equal("debug", viper.GetString("LOG_LEVEL"))
@@ -19,6 +19,14 @@ func TestConfigure(t *testing.T) {
 	assert.Equal("sftp", viper.GetString("SFTP_USERNAME"))
 	assert.Equal("sftp", viper.GetString("SFTP_PASSWORD"))
 	assert.Equal("printfiles", viper.GetString("SFTP_DIRECTORY"))
+}
 
+func TestConfigureLogging(t *testing.T) {
+	assert := assert.New(t)
+	assert.Equal(log.InfoLevel.String(), log.GetLevel().String())
+
+	// test it is changed to debug
+	SetDefaults()
+	ConfigureLogging()
 	assert.Equal(log.DebugLevel.String(), log.GetLevel().String())
 }
