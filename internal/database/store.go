@@ -41,10 +41,12 @@ func (s *DataStore) Add(filename string, p *pkg.PrintFile) (*pkg.PrintFileReques
 		PrintFile: p,
 		Filename:  filename,
 		Created:   time.Now(),
+		Updated:   time.Now(),
+		Attempts:  1,
 		Status: pkg.Status{
-			TemplateComplete: false,
-			UploadedGCS:      false,
-			UploadedSFTP:     false,
+			Templated:    false,
+			UploadedGCS:  false,
+			UploadedSFTP: false,
 		},
 	}
 
@@ -70,6 +72,7 @@ func (s *DataStore) Update(pfr *pkg.PrintFileRequest) error {
 	if s.client == nil {
 		return errors.New("please initialise the connection")
 	}
+	pfr.Updated = time.Now()
 	key := datastore.NameKey("PrintFileRequest", pfr.Filename, nil)
 	tx, err := s.client.NewTransaction(s.ctx)
 	if err != nil {
@@ -85,4 +88,22 @@ func (s *DataStore) Update(pfr *pkg.PrintFileRequest) error {
 		return err
 	}
 	return nil
+}
+
+func (s *DataStore) FindIncomplete() ([]*pkg.PrintFileRequest, error) {
+	log.Debug("about to execute query on datastore")
+	var pfrs []*pkg.PrintFileRequest
+
+	query := datastore.NewQuery("PrintFileRequest").Filter("Status.Completed =", false)
+	keys, err := s.client.GetAll(s.ctx, query, &pfrs)
+	incomplete := len(keys)
+	log.WithField("incomplete", incomplete).Info("found incomplete requests")
+	for _,v := range keys {
+		log.WithField("id", v).Debug("request found to be incomplete")
+	}
+	if err != nil {
+		log.WithError(err).Error("unable to query datastore")
+		return nil, err
+	}
+	return pfrs, nil
 }

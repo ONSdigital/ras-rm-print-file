@@ -14,21 +14,26 @@ import (
 
 var printTemplate = "printfile.tmpl"
 
-type Printer struct {
+type SDCPrinter struct {
 	store      pkg.Store
 	gcsUpload  pkg.Upload
 	sftpUpload pkg.Upload
 }
 
-func Process(filename string, printFile *pkg.PrintFile) error {
-	processor := &Printer{}
+func Create() *SDCPrinter {
+	processor := &SDCPrinter{}
 	processor.store = &database.DataStore{}
 	processor.gcsUpload = &gcs.GCSUpload{}
 	processor.sftpUpload = &sftp.SFTPUpload{}
-	return processor.process(filename, printFile)
+	return processor
 }
 
-func (p *Printer) process(filename string, printFile *pkg.PrintFile) error {
+func CreateAndProcess(filename string, printFile *pkg.PrintFile) error {
+	processor := Create()
+	return processor.Process(filename, printFile)
+}
+
+func (p *SDCPrinter) Process(filename string, printFile *pkg.PrintFile) error {
 	log.WithField("filename", filename).Info("processing print file")
 
 	// first save the request to the DB
@@ -37,7 +42,7 @@ func (p *Printer) process(filename string, printFile *pkg.PrintFile) error {
 		log.WithError(err).Error("unable to initialise storage")
 		return err
 	}
-	pfr, err := p.store.Add(filename, printFile)
+	printFileRequest, err := p.store.Add(filename, printFile)
 	if err != nil {
 		log.WithError(err).Error("unable to store print file request ")
 		return err
@@ -51,22 +56,73 @@ func (p *Printer) process(filename string, printFile *pkg.PrintFile) error {
 	if err != nil {
 		return err
 	}
-	pfr.Status.TemplateComplete = true
+	printFileRequest.Status.Templated = true
 	log.WithField("ApplyTemplate", printTemplate).WithField("filename", filename).Info("templating complete")
 
 	// first upload to GCS
-	pfr.Status.UploadedGCS = upload(filename, buf, p.gcsUpload, "gcs")
+	printFileRequest.Status.UploadedGCS = upload(filename, buf, p.gcsUpload, "gcs")
 
 	// and then to SFTP
-	pfr.Status.UploadedSFTP = upload(filename, buf, p.sftpUpload, "sftp")
+	printFileRequest.Status.UploadedSFTP = upload(filename, buf, p.sftpUpload, "sftp")
 
-	err = p.store.Update(pfr)
+	//check if it's completed
+	printFileRequest.Status.Completed= isComplete(printFileRequest)
+
+	err = p.store.Update(printFileRequest)
 	if err != nil {
 		log.WithError(err).Error("failed to Update database")
-		//TODO set to not ready
 		return err
 	}
 	return nil
+}
+
+func (p *SDCPrinter) ReProcess(printFileRequest *pkg.PrintFileRequest) error {
+	filename := printFileRequest.Filename
+	log.WithField("filename", filename).Info("processing print file")
+
+	// first save the request to the DB
+	err := p.store.Init()
+	if err != nil {
+		log.WithError(err).Error("unable to initialise storage")
+		return err
+	}
+
+	//increment the number of attempts
+	numberOfAttempts :=  printFileRequest.Attempts
+	printFileRequest.Attempts = numberOfAttempts + 1
+
+	// load the ApplyTemplate
+	buf, err := applyTemplate(printFileRequest.PrintFile)
+	if err != nil {
+		return err
+	}
+	printFileRequest.Status.Templated = true
+	log.WithField("ApplyTemplate", printTemplate).WithField("filename", filename).Info("templating complete")
+
+	// first upload to GCS
+	if !printFileRequest.Status.UploadedGCS {
+		log.Info("print request not uploaded to GCS retrying")
+		printFileRequest.Status.UploadedGCS = upload(filename, buf, p.gcsUpload, "gcs")
+	}
+	// and then to SFTP
+	if !printFileRequest.Status.UploadedSFTP {
+		log.Info("print request not uploaded to SFTP retrying")
+		printFileRequest.Status.UploadedSFTP = upload(filename, buf, p.sftpUpload, "sftp")
+	}
+
+	//check if it's completed
+	printFileRequest.Status.Completed= isComplete(printFileRequest)
+
+	err = p.store.Update(printFileRequest)
+	if err != nil {
+		log.WithError(err).Error("failed to Update database")
+		return err
+	}
+	return nil
+}
+
+func isComplete(printFileRequest *pkg.PrintFileRequest) bool {
+	return printFileRequest.Status.Templated && printFileRequest.Status.UploadedGCS && printFileRequest.Status.UploadedSFTP
 }
 
 func upload(filename string, buffer *bytes.Buffer, uploader pkg.Upload, name string) bool {

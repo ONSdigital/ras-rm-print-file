@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/ONSdigital/ras-rm-print-file/internal/config"
+	"github.com/ONSdigital/ras-rm-print-file/internal/retry"
 	"github.com/ONSdigital/ras-rm-print-file/internal/web"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -16,6 +17,13 @@ func configure() {
 	config.ConfigureLogging()
 }
 
+func startRetryService() {
+	log.Info("starting retry service")
+	br := retry.BackoffRetry{}
+	go br.Start()
+	log.Info("started retry service")
+}
+
 func main() {
 	configure()
 	log.Info("starting ras-rm-print-file")
@@ -27,6 +35,8 @@ func main() {
 	r.HandleFunc("/alive", web.Alive)
 	r.HandleFunc("/ready", web.Ready)
 	http.Handle("/", r)
+
+	startRetryService()
 
 	log.Info("started")
 	log.Fatal(http.ListenAndServe(":8080", nil))

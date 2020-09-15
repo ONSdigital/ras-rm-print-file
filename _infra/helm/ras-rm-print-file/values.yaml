@@ -27,6 +27,9 @@ sftp:
   test:
     enabled: true
 
+retry:
+  delay: 60000
+
 gcp:
   project: ras-rm-sandbox
   bucket:
