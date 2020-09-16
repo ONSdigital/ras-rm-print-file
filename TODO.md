@@ -4,4 +4,5 @@
 2. ~~Create a google cloud firestore service and wire it~~ 
 3. ~~Implement code in store.go to upload to firestore~~
 4. Implement back off retry mechanism in retry.go
-5. Add missing unit tests
+5. ~~Add missing unit tests~~
+6. Convert to pub/sub as in design
