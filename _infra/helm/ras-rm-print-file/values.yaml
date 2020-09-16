@@ -1,0 +1,33 @@
+env: sandbox
+replicas: 1
+rollingUpdate:
+  maxSurge: 1
+  maxUnavailable: 1
+
+image:
+  devRepo: eu.gcr.io/ons-rasrmbs-management
+  name: eu.gcr.io/ons-rasrmbs-management
+  tag: latest
+  pullPolicy: Always
+
+resources:
+  requests:
+    memory: "32Mi"
+
+container:
+  port: 8080
+service:
+  port: 8080
+
+log:
+  level: debug
+
+sftp:
+  directory: /home/demo/sftp
+  test:
+    enabled: true
+
+gcp:
+  project: ras-rm-sandbox
+  bucket:
+    name: ras-rm-print-file

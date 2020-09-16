@@ -1,0 +1,13 @@
+{
+  "sampleUnitRef":"10001",
+  "iac":"ai9bt497r7bn",
+  "caseGroupStatus":"NOTSTARTED",
+  "enrolmentStatus":"",
+  "respondentStatus":"",
+  "contact":{
+    "forename":"Jon",
+    "surname":"Snow",
+    "emailAddress":"jon.snow@example.com"
+  },
+  "region":"HH"
+}
