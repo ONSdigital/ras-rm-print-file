@@ -66,7 +66,7 @@ func (p *SDCPrinter) Process(filename string, printFile *pkg.PrintFile) error {
 	printFileRequest.Status.UploadedSFTP = upload(filename, buf, p.sftpUpload, "sftp")
 
 	//check if it's completed
-	printFileRequest.Status.Completed= isComplete(printFileRequest)
+	printFileRequest.Status.Completed = isComplete(printFileRequest)
 
 	err = p.store.Update(printFileRequest)
 	if err != nil {
@@ -88,7 +88,7 @@ func (p *SDCPrinter) ReProcess(printFileRequest *pkg.PrintFileRequest) error {
 	}
 
 	//increment the number of attempts
-	numberOfAttempts :=  printFileRequest.Attempts
+	numberOfAttempts := printFileRequest.Attempts
 	printFileRequest.Attempts = numberOfAttempts + 1
 
 	// load the ApplyTemplate
@@ -111,7 +111,7 @@ func (p *SDCPrinter) ReProcess(printFileRequest *pkg.PrintFileRequest) error {
 	}
 
 	//check if it's completed
-	printFileRequest.Status.Completed= isComplete(printFileRequest)
+	printFileRequest.Status.Completed = isComplete(printFileRequest)
 
 	err = p.store.Update(printFileRequest)
 	if err != nil {

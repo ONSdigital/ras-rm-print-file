@@ -10,11 +10,11 @@ import (
 )
 
 type BackoffRetry struct {
-	store pkg.Store
+	store   pkg.Store
 	printer pkg.Printer
 }
 
-func(b BackoffRetry) Start()  {
+func (b BackoffRetry) Start() {
 	configDelay := viper.GetInt64("RETRY_DELAY")
 	log.WithField("delay", configDelay).Debug("retrieving delay setting from config")
 
@@ -30,7 +30,7 @@ func(b BackoffRetry) Start()  {
 	}
 }
 
-func(b BackoffRetry) process() {
+func (b BackoffRetry) process() {
 	err := b.store.Init()
 	if err != nil {
 		log.WithError(err).Error("unable to initialise storage")
@@ -51,6 +51,6 @@ func(b BackoffRetry) process() {
 	for _, printRequest := range printRequests {
 		log.Info("reprocessing print request")
 
-		go b.printer.ReProcess(printRequest)
+		b.printer.ReProcess(printRequest)
 	}
 }

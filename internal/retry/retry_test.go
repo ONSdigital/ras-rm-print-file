@@ -31,7 +31,7 @@ func TestProcess(t *testing.T) {
 		PrintFile: printFile,
 		Filename:  "test.csv",
 		Created:   time.Now(),
-		Status:    pkg.Status{
+		Status: pkg.Status{
 			Templated:    true,
 			UploadedGCS:  false,
 			UploadedSFTP: false,
@@ -48,13 +48,10 @@ func TestProcess(t *testing.T) {
 	printer.On("ReProcess", printFileRequest).Return(nil)
 
 	backOffRetry := BackoffRetry{
-		store: store,
+		store:   store,
 		printer: printer,
 	}
 	backOffRetry.process()
-
-	// need to wait a few milliseconds for the go rountine to execture
-	time.Sleep(10 * time.Millisecond)
 
 	store.AssertNotCalled(t, "Update")
 	store.AssertNotCalled(t, "Add")
@@ -86,7 +83,7 @@ func TestReProcessWhenCompleteDoesNotRun(t *testing.T) {
 		PrintFile: printFile,
 		Filename:  "test.csv",
 		Created:   time.Now(),
-		Status:    pkg.Status{
+		Status: pkg.Status{
 			Templated:    true,
 			UploadedGCS:  true,
 			UploadedSFTP: true,
@@ -103,7 +100,7 @@ func TestReProcessWhenCompleteDoesNotRun(t *testing.T) {
 	printer.On("ReProcess", printFileRequest).Return(nil)
 
 	backOffRetry := BackoffRetry{
-		store: store,
+		store:   store,
 		printer: printer,
 	}
 	backOffRetry.process()

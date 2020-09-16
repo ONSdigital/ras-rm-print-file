@@ -98,7 +98,7 @@ func (s *DataStore) FindIncomplete() ([]*pkg.PrintFileRequest, error) {
 	keys, err := s.client.GetAll(s.ctx, query, &pfrs)
 	incomplete := len(keys)
 	log.WithField("incomplete", incomplete).Info("found incomplete requests")
-	for _,v := range keys {
+	for _, v := range keys {
 		log.WithField("id", v).Debug("request found to be incomplete")
 	}
 	if err != nil {

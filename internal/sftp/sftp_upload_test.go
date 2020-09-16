@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-
 func TestCreateSFTPAddress(t *testing.T) {
 	config.SetDefaults()
 	address := createSFTPAddress()

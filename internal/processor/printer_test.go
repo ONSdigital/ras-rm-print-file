@@ -83,7 +83,7 @@ func TestSanitise(t *testing.T) {
 	}
 	entries := []*pkg.PrintFileEntry{entry}
 	printFile := &pkg.PrintFile{
-		 PrintFiles: entries,
+		PrintFiles: entries,
 	}
 	sanitise(printFile)
 
