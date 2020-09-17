@@ -6,14 +6,14 @@ import (
 	"github.com/ONSdigital/ras-rm-print-file/internal/processor"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 )
 
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logrus.Debug("setting content type to application/json")
+		log.Debug("setting content type to application/json")
 		w.Header().Add("Content-Type", "application/json")
 		next.ServeHTTP(w, r)
 	})
@@ -22,24 +22,24 @@ func Middleware(next http.Handler) http.Handler {
 func Print(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
-		logrus.Debug("post request received processing")
+		log.Debug("post request received processing")
 		reqBody, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			logrus.WithError(err).Error("unable to read body")
+			log.WithError(err).Error("unable to read body")
 			w.WriteHeader(http.StatusInternalServerError)
 		}
-		logrus.WithField("reqBody", string(reqBody)).Debug("body of request")
+		log.WithField("reqBody", string(reqBody)).Debug("body of request")
 		vars := mux.Vars(r)
 		filename := vars["filename"]
 		if filename == "" {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintln(w, "missing filename")
 		}
-		logrus.WithField("filename", filename).Info("received request to print file")
+		log.WithField("filename", filename).Info("received request to print file")
 		var printFileEntries []*pkg.PrintFileEntry
 		err = json.Unmarshal(reqBody, &printFileEntries)
 		if err != nil {
-			logrus.WithError(err).Error("unable to marshall json payload")
+			log.WithError(err).Error("unable to marshall json payload")
 			w.WriteHeader(http.StatusBadRequest)
 		}
 		printFile := pkg.PrintFile{
@@ -48,13 +48,13 @@ func Print(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(http.StatusAccepted)
 		resp, _ := json.Marshal(printFile)
-		logrus.WithField("resp", string(resp)).Debug("about to process")
+		log.WithField("resp", string(resp)).Debug("about to process")
 		//spawn a process to process the print file
 
 		go processor.CreateAndProcess(filename, &printFile)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		logrus.Info("print - method not allowed")
+		log.Info("print - method not allowed")
 		fmt.Fprintf(w, "Only POST methods are supported.")
 	}
 }
@@ -62,11 +62,11 @@ func Print(w http.ResponseWriter, r *http.Request) {
 func Alive(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		logrus.Debug("alive OK")
+		log.Debug("alive OK")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "{\"status\": \"OK\"}")
 	default:
-		logrus.Debug("alive -method not allowed")
+		log.Debug("alive -method not allowed")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprint(w, "Only GET methods are supported")
 	}
@@ -75,11 +75,11 @@ func Alive(w http.ResponseWriter, r *http.Request) {
 func Ready(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		logrus.Debug("ready OK")
+		log.Debug("ready OK")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "{\"status\": \"READY\"}")
 	default:
-		logrus.Debug("ready - method not allowed")
+		log.Debug("ready - method not allowed")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprint(w, "Only GET methods are supported")
 	}
