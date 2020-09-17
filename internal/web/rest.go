@@ -50,7 +50,8 @@ func Print(w http.ResponseWriter, r *http.Request) {
 		resp, _ := json.Marshal(printFile)
 		logrus.WithField("resp", string(resp)).Debug("about to process")
 		//spawn a process to process the print file
-		go processor.Process(filename, &printFile)
+
+		go processor.CreateAndProcess(filename, &printFile)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		logrus.Info("print - method not allowed")

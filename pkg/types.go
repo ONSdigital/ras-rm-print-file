@@ -26,11 +26,14 @@ type PrintFileRequest struct {
 	PrintFile *PrintFile
 	Filename  string
 	Created   time.Time
+	Updated   time.Time
 	Status    Status
+	Attempts  int
 }
 
 type Status struct {
-	TemplateComplete bool
-	UploadedGCS      bool
-	UploadedSFTP     bool
+	Templated    bool
+	UploadedGCS  bool
+	UploadedSFTP bool
+	Completed    bool
 }

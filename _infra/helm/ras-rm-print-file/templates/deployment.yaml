@@ -81,5 +81,7 @@ spec:
                   key: sftp-actionexporter-password
             - name: SFTP_DIRECTORY
               value: "{{ .Values.sftp.directory }}"
+            - name: RETRY_DELAY
+              value: "{{ .Values.retry.delay }}"
           resources:
   {{ toYaml .Values.resources | nindent 12 }}

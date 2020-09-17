@@ -31,12 +31,12 @@ func TestProcess(t *testing.T) {
 	sftpUpload.On("Init").Return(nil)
 	sftpUpload.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
 
-	processor := &Printer{
+	processor := &SDCPrinter{
 		store,
 		gcsUpload,
 		sftpUpload,
 	}
-	err := processor.process("test.csv", printFile)
+	err := processor.Process("test.csv", printFile)
 	assert.Nil(err)
 
 	store.AssertExpectations(t)
@@ -83,7 +83,7 @@ func TestSanitise(t *testing.T) {
 	}
 	entries := []*pkg.PrintFileEntry{entry}
 	printFile := &pkg.PrintFile{
-		 PrintFiles: entries,
+		PrintFiles: entries,
 	}
 	sanitise(printFile)
 

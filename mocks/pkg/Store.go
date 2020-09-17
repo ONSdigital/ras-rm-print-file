@@ -35,6 +35,29 @@ func (_m *Store) Add(filename string, p *pkg.PrintFile) (*pkg.PrintFileRequest, 
 	return r0, r1
 }
 
+// FindIncomplete provides a mock function with given fields:
+func (_m *Store) FindIncomplete() ([]*pkg.PrintFileRequest, error) {
+	ret := _m.Called()
+
+	var r0 []*pkg.PrintFileRequest
+	if rf, ok := ret.Get(0).(func() []*pkg.PrintFileRequest); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*pkg.PrintFileRequest)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Init provides a mock function with given fields:
 func (_m *Store) Init() error {
 	ret := _m.Called()
