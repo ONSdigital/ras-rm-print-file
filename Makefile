@@ -8,3 +8,8 @@ test:
 .PHONY: build
 build:
 	go build -o build/$(NAME) $(MAIN_SRC_FILE)
+
+.PHONY: fmt
+fmt:
+	go fmt  ./...
+

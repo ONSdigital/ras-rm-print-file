@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/ONSdigital/ras-rm-print-file/internal/config"
+	"github.com/ONSdigital/ras-rm-print-file/internal/gcpubsub"
 	"github.com/ONSdigital/ras-rm-print-file/internal/retry"
 	"github.com/ONSdigital/ras-rm-print-file/internal/web"
 	"github.com/gorilla/mux"
@@ -20,8 +21,16 @@ func configure() {
 func startRetryService() {
 	log.Info("starting retry service")
 	br := retry.BackoffRetry{}
-	go br.Start()
+	br.Start()
 	log.Info("started retry service")
+}
+
+func startPubSubListener() {
+	log.Info("starting gcpubsub listener")
+	s := gcpubsub.Subscriber{}
+	s.Init()
+	s.Start()
+	log.Info("started gcpubsub listener")
 }
 
 func main() {
@@ -36,7 +45,8 @@ func main() {
 	r.HandleFunc("/ready", web.Ready)
 	http.Handle("/", r)
 
-	startRetryService()
+	go startRetryService()
+	go startPubSubListener()
 
 	log.Info("started")
 	log.Fatal(http.ListenAndServe(":8080", nil))

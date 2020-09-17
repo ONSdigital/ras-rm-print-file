@@ -83,5 +83,9 @@ spec:
               value: "{{ .Values.sftp.directory }}"
             - name: RETRY_DELAY
               value: "{{ .Values.retry.delay }}"
+            - name: PUBSUB_TOPIC
+              value: {{ .Values.gcp.topic }}
+            - name: PUBSUB_SUB_ID
+              value: {{ .Values.gcp.subscription }}
           resources:
   {{ toYaml .Values.resources | nindent 12 }}
