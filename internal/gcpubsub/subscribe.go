@@ -15,7 +15,7 @@ type Subscriber struct {
 }
 
 func (s Subscriber) Init() {
-	s.Printer = processor.Create()
+	s.Printer = processor.Crevate()
 }
 
 func (s Subscriber) Start() {
