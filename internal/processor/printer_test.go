@@ -113,7 +113,7 @@ func TestApplyTemplate(t *testing.T) {
 
 	buffer, err := applyTemplate(printFile)
 	assert.Nil(err)
-	assert.Equal("10001:ai9bt497r7bn:NOTSTARTED:::Jon:Snow:jon.snow@example.com:HH", buffer.String())
+	assert.Equal("10001:ai9bt497r7bn:NOTSTARTED:::Jon:Snow:jon.snow@example.com:HH\n", buffer.String())
 }
 
 func TestApplyTemplateEmptyPrintFile(t *testing.T) {
