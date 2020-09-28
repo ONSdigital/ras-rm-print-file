@@ -4,7 +4,6 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/json"
-	"github.com/ONSdigital/ras-rm-print-file/internal/processor"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -12,10 +11,6 @@ import (
 
 type Subscriber struct {
 	Printer pkg.Printer
-}
-
-func (s Subscriber) Init() {
-	s.Printer = processor.Create()
 }
 
 func (s Subscriber) Start() {
@@ -60,10 +55,10 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 				PrintFiles: printFileEntries,
 			}
 			log.WithField("print file", printFile).Debug("created print file")
-			if s.Printer == nil {
-				log.Info("printer was nil, recreating")
-				s.Printer = processor.Create()
-			}
+			//if s.Printer == nil {
+			//	log.Info("printer was nil, recreating")
+			//	s.Printer = processor.Create()
+			//}
 			err = s.Printer.Process(filename, &printFile)
 			if err != nil {
 				log.WithError(err).Error("error processing printfile - nacking message")
