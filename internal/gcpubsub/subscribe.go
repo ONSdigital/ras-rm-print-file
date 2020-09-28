@@ -55,10 +55,6 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 				PrintFiles: printFileEntries,
 			}
 			log.WithField("print file", printFile).Debug("created print file")
-			//if s.Printer == nil {
-			//	log.Info("printer was nil, recreating")
-			//	s.Printer = processor.Create()
-			//}
 			err = s.Printer.Process(filename, &printFile)
 			if err != nil {
 				log.WithError(err).Error("error processing printfile - nacking message")
