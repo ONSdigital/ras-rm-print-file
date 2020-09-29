@@ -1,5 +1,5 @@
 apiVersion: v2
-name: ras-rm-print-file
+name: print-file
 description: A Helm chart for deploying the rasrm print file generator
 
 type: application
