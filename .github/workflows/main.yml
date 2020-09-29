@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  IMAGE: ras-rm-print-file
+  IMAGE: print-file
   REGISTRY_HOSTNAME: eu.gcr.io
   HOST: ${{ secrets.GOOGLE_PROJECT_ID }}
   RELEASE_HOST: ${{ secrets.RELEASE_PROJECT_ID }}
