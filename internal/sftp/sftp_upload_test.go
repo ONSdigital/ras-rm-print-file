@@ -29,3 +29,9 @@ func TestUploadFileErrorsWithNoConnection(t *testing.T) {
 	err := sftp.UploadFile("test", []byte("test"))
 	assert.NotNil(t, err)
 }
+
+func TestFilePath(t *testing.T) {
+	config.SetDefaults()
+	filename := "test.csv"
+	assert.Equal(t, "printfiles/test.csv", filepath(filename))
+}

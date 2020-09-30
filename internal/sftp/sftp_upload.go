@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
+	"os"
 )
 
 type SFTPUpload struct {
@@ -63,8 +64,10 @@ func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
 	}
 	defer client.Close()
 
+	path := filepath(filename)
+
 	log.Info("creating file")
-	f, err := client.Create(filename)
+	f, err := client.Create(path)
 	if err != nil {
 		log.WithError(err).Error("unable to create file")
 		return err
@@ -85,4 +88,10 @@ func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
 	}
 	log.WithField("file", fi.Name()).Info("upload complete")
 	return nil
+}
+
+func filepath(filename string) string {
+	dir := viper.GetString("SFTP_DIRECTORY")
+	path := dir + string(os.PathSeparator) + filename
+	return path
 }
