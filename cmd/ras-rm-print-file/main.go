@@ -37,7 +37,7 @@ func startPubSubListener() {
 
 func main() {
 	configure()
-	log.Info("starting ras-rm-print-file")
+	log.Info("starting print-file")
 
 	//configure the gorilla router
 	r := mux.NewRouter()

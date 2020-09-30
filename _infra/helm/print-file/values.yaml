@@ -33,6 +33,6 @@ retry:
 gcp:
   project: ras-rm-sandbox
   bucket:
-    name: ras-rm-print-file
+    name: print-file
   topic: print-file-jobs
   subscription: print-file-workers
