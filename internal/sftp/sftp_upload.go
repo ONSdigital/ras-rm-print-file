@@ -64,8 +64,7 @@ func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
 	}
 	defer client.Close()
 
-	dir := viper.GetString("SFTP_DIRECTORY")
-	path := dir + string(os.PathSeparator) + filename
+	path := filepath(filename)
 
 	log.Info("creating file")
 	f, err := client.Create(path)
@@ -89,4 +88,10 @@ func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
 	}
 	log.WithField("file", fi.Name()).Info("upload complete")
 	return nil
+}
+
+func filepath(filename string) string {
+	dir := viper.GetString("SFTP_DIRECTORY")
+	path := dir + string(os.PathSeparator) + filename
+	return path
 }
