@@ -23,7 +23,7 @@ log:
   level: debug
 
 sftp:
-  directory: /home/demo/sftp
+  directory: .
   test:
     enabled: true
 
