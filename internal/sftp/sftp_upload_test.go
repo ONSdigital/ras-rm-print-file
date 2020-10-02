@@ -33,5 +33,5 @@ func TestUploadFileErrorsWithNoConnection(t *testing.T) {
 func TestFilePath(t *testing.T) {
 	config.SetDefaults()
 	filename := "test.csv"
-	assert.Equal(t, "printfiles/test.csv", filepath(filename))
+	assert.Equal(t, "test/printfiles/test.csv", filepath("test", filename))
 }

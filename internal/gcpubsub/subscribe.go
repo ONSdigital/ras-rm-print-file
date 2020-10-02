@@ -34,7 +34,6 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 	log.Debug("waiting to receive")
 	err := sub.Receive(cctx, func(ctx context.Context, msg *pubsub.Message) {
 		log.Info("print file received - processing")
-		
 		if msg.DeliveryAttempt != nil {
 			log.WithField("delivery attempts", *msg.DeliveryAttempt).Info("Message delivery attempted")
 		}
