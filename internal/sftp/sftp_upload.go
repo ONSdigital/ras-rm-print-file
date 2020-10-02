@@ -74,6 +74,17 @@ func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
 
 	log.WithField("workdir", workdir).Info("working dir")
 
+	//check the file is there
+	fi, err := client.Lstat(path)
+	if err != nil {
+		log.WithField("filepath", path).Info("file does not exist, creating")
+	} else {
+		if fi.Size() != 0 {
+			log.WithField("filepath", path).Info("file already exists and is not empty")
+			return nil
+		}
+	}
+
 	f, err := client.Create(path)
 	if err != nil {
 		log.WithError(err).WithField("filepath", path).Error("unable to create file")
@@ -88,7 +99,7 @@ func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
 
 	// check it's there
 	log.Info("confirming file exists")
-	fi, err := client.Lstat(path)
+	fi, err = client.Lstat(path)
 	if err != nil {
 		log.WithError(err).WithField("filepath", path).Warn("unable to confirm file exists")
 	}

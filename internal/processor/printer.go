@@ -153,7 +153,6 @@ func sanitise(pf *pkg.PrintFile) {
 
 func nullIfEmpty(value string) string {
 	if value == "" {
-		log.Debug("empty value replacing with null")
 		return "null"
 	}
 	return value
