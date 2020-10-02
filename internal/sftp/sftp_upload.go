@@ -107,9 +107,9 @@ func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
 	return nil
 }
 
-func filepath(workdir string, filename string) string {
+func filepath(workingDir string, filename string) string {
 	dir := viper.GetString("SFTP_DIRECTORY")
 	ps := string(os.PathSeparator)
-	path := workdir + ps + dir + ps + filename
+	path := workingDir + ps + dir + ps + filename
 	return path
 }
