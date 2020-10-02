@@ -67,24 +67,30 @@ func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
 	path := filepath(filename)
 
 	log.Info("creating file")
+	workdir, err := client.Getwd()
+	if err != nil {
+		log.Error("unable to get current working directory")
+	}
+
+	log.WithField("workdir", workdir).Info("working dir")
+
 	f, err := client.Create(path)
 	if err != nil {
-		log.WithError(err).Error("unable to create file")
+		log.WithError(err).WithField("filepath", path).Error("unable to create file")
 		return err
 	}
 	log.Info("writing contents")
 	if _, err := f.Write(contents); err != nil {
-		log.WithError(err).Error("unable to write file contents")
+		log.WithError(err).WithField("filepath", path).Error("unable to write file contents")
 		return err
 	}
 	f.Close()
 
 	// check it's there
 	log.Info("confirming file exists")
-	fi, err := client.Lstat(filename)
+	fi, err := client.Lstat(path)
 	if err != nil {
-		log.WithError(err).Error("unable to write file contents")
-		return err
+		log.WithError(err).WithField("filepath", path).Warn("unable to confirm file exists")
 	}
 	log.WithField("file", fi.Name()).Info("upload complete")
 	return nil

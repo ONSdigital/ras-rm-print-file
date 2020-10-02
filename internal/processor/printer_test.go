@@ -26,10 +26,12 @@ func TestProcess(t *testing.T) {
 	gcsUpload := new(mocks.Upload)
 	gcsUpload.On("Init").Return(nil)
 	gcsUpload.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
+	gcsUpload.On("Close").Return(nil)
 
 	sftpUpload := new(mocks.Upload)
 	sftpUpload.On("Init").Return(nil)
 	sftpUpload.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
+	sftpUpload.On("Close").Return(nil)
 
 	processor := &SDCPrinter{
 		store,
