@@ -4,12 +4,10 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/json"
-	"github.com/ONSdigital/ras-rm-print-file/internal/gcs"
+	"github.com/ONSdigital/ras-rm-print-file/internal/payload"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"path"
-	"strings"
 )
 
 type Subscriber struct {
@@ -46,7 +44,7 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 		attribute := msg.Attributes
 		filename, ok := attribute["filename"]
 
-		uploadBodyToGCS(printFileData, filename)
+		save(printFileData, filename)
 
 		if ok {
 			log.WithField("filename", filename).Info("about to process print file")
@@ -85,20 +83,12 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 	}
 }
 
-func uploadBodyToGCS(reqBody []byte, filename string) {
-	copyOfBody := make([]byte, len(reqBody))
-	copy(copyOfBody, reqBody)
-	//rename file to .json
-	copyFilename := strings.TrimSuffix(filename, path.Ext(filename)) + ".json"
-	log.WithField("filename", filename).Info("uploading json payload")
-	gcsUpload := gcs.GCSUpload{}
-	gcsUpload.Init()
-	err := gcsUpload.UploadFile(copyFilename, reqBody)
-	if err != nil {
-		log.WithError(err).Error("unable to upload json payload")
-		return
-	}
-	log.Info("uploaded json payload")
+func save(requestBody []byte, filename string) {
+	//copy the buffer to pass it safely to a go rountine
+	data := make([]byte, len(requestBody))
+	copy(data, requestBody)
+	payload := payload.Create()
+	go payload.Save(filename, data)
 }
 
 // send message to DLQ immediately

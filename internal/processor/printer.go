@@ -28,11 +28,6 @@ func Create() *SDCPrinter {
 	return processor
 }
 
-func CreateAndProcess(filename string, printFile *pkg.PrintFile) error {
-	processor := Create()
-	return processor.Process(filename, printFile)
-}
-
 func (p *SDCPrinter) Process(filename string, pf *pkg.PrintFile) error {
 	log.WithField("filename", filename).Info("processing print file")
 
@@ -132,6 +127,7 @@ func upload(filename string, buffer *bytes.Buffer, uploader pkg.Upload, name str
 		log.WithError(err).Errorf("failed to initialise %v upload", name)
 		return false
 	}
+	defer uploader.Close()
 	err = uploader.UploadFile(filename, buffer.Bytes())
 	if err != nil {
 		log.WithError(err).Errorf("failed to upload to %v", name)

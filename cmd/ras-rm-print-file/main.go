@@ -42,7 +42,6 @@ func main() {
 	//configure the gorilla router
 	r := mux.NewRouter()
 	r.Use(web.Middleware)
-	r.HandleFunc("/print/{filename}", web.Print)
 	r.HandleFunc("/alive", web.Alive)
 	r.HandleFunc("/ready", web.Ready)
 	http.Handle("/", r)
