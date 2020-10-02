@@ -64,15 +64,15 @@ func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
 	}
 	defer client.Close()
 
-	path := filepath(filename)
-
-	log.Info("creating file")
-	workdir, err := client.Getwd()
+	workingDir, err := client.Getwd()
 	if err != nil {
 		log.Error("unable to get current working directory")
 	}
 
-	log.WithField("workdir", workdir).Info("working dir")
+	log.WithField("workingDir", workingDir).Info("working dir")
+	path := filepath(workingDir, filename)
+
+	log.Info("creating file")
 
 	//check the file is there
 	fi, err := client.Lstat(path)
@@ -107,8 +107,9 @@ func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
 	return nil
 }
 
-func filepath(filename string) string {
+func filepath(workdir string, filename string) string {
 	dir := viper.GetString("SFTP_DIRECTORY")
-	path := dir + string(os.PathSeparator) + filename
+	ps := string(os.PathSeparator)
+	path := workdir + ps + dir + ps + filename
 	return path
 }
