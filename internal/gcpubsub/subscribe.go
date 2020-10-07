@@ -56,7 +56,7 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 			printFile := pkg.PrintFile{
 				PrintFiles: printFileEntries,
 			}
-			log.WithField("print file", printFile).Debug("created print file")
+			log.Debug("created print file")
 			err = s.Printer.Process(filename, &printFile)
 			if err != nil {
 				log.WithError(err).Error("error processing printfile - nacking message")
