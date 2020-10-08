@@ -3,8 +3,7 @@ package gcpubsub
 import (
 	"cloud.google.com/go/pubsub"
 	"context"
-	"encoding/json"
-	"github.com/ONSdigital/ras-rm-print-file/internal/payload"
+	"github.com/ONSdigital/ras-rm-print-file/internal/gcs"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -38,20 +37,20 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 			log.WithField("delivery attempts", *msg.DeliveryAttempt).Info("Message delivery attempted")
 		}
 
-		printFileData := msg.Data
+		printFileName := string(msg.Data)
 		attribute := msg.Attributes
 		filename, ok := attribute["filename"]
-
-		save(printFileData, filename)
 
 		if ok {
 			log.WithField("filename", filename).Info("about to process print file")
 			var printFileEntries []*pkg.PrintFileEntry
-			err := json.Unmarshal(printFileData, &printFileEntries)
+			payload := gcs.GCSDownload{}
+			payload.Init()
+			printFileEntries, err := payload.Load(printFileName)
 			if err != nil {
-				log.WithError(err).Error("unable to marshall json payload - nacking message")
+				log.WithError(err).Error("error reading printfile data from bucket - nacking message")
+				//after x number of nacks message will be DLQ
 				msg.Nack()
-				return
 			}
 			printFile := pkg.PrintFile{
 				PrintFiles: printFileEntries,
@@ -79,14 +78,6 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 		log.WithError(err).Error("error subscribing")
 		cancel()
 	}
-}
-
-func save(requestBody []byte, filename string) {
-	//copy the buffer to pass it safely to a go rountine
-	data := make([]byte, len(requestBody))
-	copy(data, requestBody)
-	payload := payload.Create()
-	go payload.Save(filename, data)
 }
 
 // send message to DLQ immediately
