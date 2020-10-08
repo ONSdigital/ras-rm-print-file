@@ -3,7 +3,6 @@ package gcpubsub
 import (
 	"cloud.google.com/go/pubsub"
 	"context"
-	"github.com/ONSdigital/ras-rm-print-file/internal/gcs"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -37,26 +36,13 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 			log.WithField("delivery attempts", *msg.DeliveryAttempt).Info("Message delivery attempted")
 		}
 
-		printFileName := string(msg.Data)
+		dataFileName := string(msg.Data)
 		attribute := msg.Attributes
 		filename, ok := attribute["filename"]
 
 		if ok {
 			log.WithField("filename", filename).Info("about to process print file")
-			var printFileEntries []*pkg.PrintFileEntry
-			payload := gcs.GCSDownload{}
-			payload.Init()
-			printFileEntries, err := payload.Load(printFileName)
-			if err != nil {
-				log.WithError(err).Error("error reading printfile data from bucket - nacking message")
-				//after x number of nacks message will be DLQ
-				msg.Nack()
-			}
-			printFile := pkg.PrintFile{
-				PrintFiles: printFileEntries,
-			}
-			log.Debug("created print file")
-			err = s.Printer.Process(filename, &printFile)
+			err := s.Printer.Process(filename, dataFileName)
 			if err != nil {
 				log.WithError(err).Error("error processing printfile - nacking message")
 				//after x number of nacks message will be DLQ

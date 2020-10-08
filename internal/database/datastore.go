@@ -30,14 +30,14 @@ func (s *DataStore) Init() error {
 
 }
 
-func (s *DataStore) Add(filename string, p *pkg.PrintFile) (*pkg.PrintFileRequest, error) {
+func (s *DataStore) Add(printFilename string, dataFilename string) (*pkg.PrintFileRequest, error) {
 	if s.client == nil {
 		return nil, errors.New("please initialise the connection")
 	}
 	// DataStore the initial response and the name of the file
 	// we're meant to create
-	key := datastore.NameKey("PrintFileRequest", filename, nil)
-	pfr := createPrintFileRequest(filename, p)
+	key := datastore.NameKey("PrintFileRequest", printFilename, nil)
+	pfr := createPrintFileRequest(printFilename, dataFilename)
 
 	_, err := s.client.RunInTransaction(s.ctx, func(tx *datastore.Transaction) error {
 		// We first check that there is no entity stored with the given key.
@@ -57,10 +57,10 @@ func (s *DataStore) Add(filename string, p *pkg.PrintFile) (*pkg.PrintFileReques
 	return pfr, nil
 }
 
-func createPrintFileRequest(filename string, p *pkg.PrintFile) *pkg.PrintFileRequest {
+func createPrintFileRequest(printFilename string, dataFilename string) *pkg.PrintFileRequest {
 	pfr := &pkg.PrintFileRequest{
-		PrintFile: p,
-		Filename:  filename,
+		DataFilename: dataFilename,
+		PrintFilename:  printFilename,
 		Created:   time.Now(),
 		Updated:   time.Now(),
 		Attempts:  1,
@@ -78,7 +78,7 @@ func (s *DataStore) Update(pfr *pkg.PrintFileRequest) error {
 		return errors.New("please initialise the connection")
 	}
 	pfr.Updated = time.Now()
-	key := datastore.NameKey("PrintFileRequest", pfr.Filename, nil)
+	key := datastore.NameKey("PrintFileRequest", pfr.PrintFilename, nil)
 	tx, err := s.client.NewTransaction(s.ctx)
 	if err != nil {
 		log.WithError(err).Error("unable to start transaction")

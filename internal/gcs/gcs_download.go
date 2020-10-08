@@ -32,7 +32,17 @@ func (d *GCSDownload) Init() error {
 	return nil
 }
 
-func (d *GCSDownload) Load(filename string) ([]*pkg.PrintFileEntry, error) {
+func (d *GCSDownload) Close() error {
+	if d.client == nil {
+		return errors.New("please initialise the connection")
+	}
+	log.Info("closing connection to GCS")
+	err := d.client.Close()
+	log.Info("GCS connection closed")
+	return err
+}
+
+func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 	//loads the payload from a GCS bucket
 	if d.client == nil {
 		return nil, errors.New("please initialise the connection")
@@ -66,6 +76,9 @@ func (d *GCSDownload) Load(filename string) ([]*pkg.PrintFileEntry, error) {
 		log.WithError(err).Error("unable to marshall json payload - nacking message")
 		return nil, err
 	}
+	printFile := pkg.PrintFile{
+		PrintFiles: printFileEntries,
+	}
 
-	return printFileEntries, nil
+	return &printFile, nil
 }

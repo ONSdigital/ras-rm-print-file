@@ -18,6 +18,7 @@ type SDCPrinter struct {
 	store      pkg.Store
 	gcsUpload  pkg.Upload
 	sftpUpload pkg.Upload
+	gcsDownload pkg.Download
 }
 
 func Create() *SDCPrinter {
@@ -25,10 +26,11 @@ func Create() *SDCPrinter {
 	processor.store = &database.DataStore{}
 	processor.gcsUpload = &gcs.GCSUpload{}
 	processor.sftpUpload = &sftp.SFTPUpload{}
+	processor.gcsDownload = &gcs.GCSDownload{}
 	return processor
 }
 
-func (p *SDCPrinter) Process(filename string, pf *pkg.PrintFile) error {
+func (p *SDCPrinter) Process(filename string, datafileName string) error {
 	log.WithField("filename", filename).Info("processing print file")
 
 	// first save the request to the DB
@@ -37,9 +39,21 @@ func (p *SDCPrinter) Process(filename string, pf *pkg.PrintFile) error {
 		log.WithError(err).Error("unable to initialise storage")
 		return err
 	}
-	printFileRequest, err := p.store.Add(filename, pf)
+	printFileRequest, err := p.store.Add(filename, datafileName)
 	if err != nil {
 		log.WithError(err).Error("unable to store print file request ")
+		return err
+	}
+	// load the data file
+	err = p.gcsDownload.Init()
+	if err != nil {
+		log.WithError(err).Error("unable to initialise storage")
+		return err
+	}
+
+	pf, err := p.gcsDownload.DownloadFile(datafileName)
+	if err != nil {
+		log.WithError(err).WithField("dataFile", datafileName).Error("unable to load data file")
 		return err
 	}
 
@@ -72,22 +86,29 @@ func (p *SDCPrinter) Process(filename string, pf *pkg.PrintFile) error {
 }
 
 func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
-	filename := pfr.Filename
+	filename := pfr.PrintFilename
 	log.WithField("filename", filename).Info("processing print file")
 
-	// first save the request to the DB
-	err := p.store.Init()
-	if err != nil {
-		log.WithError(err).Error("unable to initialise storage")
-		return err
-	}
 
 	//increment the number of attempts
 	numberOfAttempts := pfr.Attempts
 	pfr.Attempts = numberOfAttempts + 1
 
+	// load the data file
+	err := p.gcsDownload.Init()
+	if err != nil {
+		log.WithError(err).Error("unable to initialise storage")
+		return err
+	}
+
+	printFile, err := p.gcsDownload.DownloadFile(pfr.DataFilename)
+	if err != nil {
+		log.WithError(err).WithField("dataFile", pfr.DataFilename).Error("unable to load data file")
+		return err
+	}
+
 	// load the ApplyTemplate
-	buf, err := applyTemplate(pfr.PrintFile)
+	buf, err := applyTemplate(printFile)
 	if err != nil {
 		return err
 	}
@@ -108,6 +129,12 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 	//check if it's completed
 	pfr.Status.Completed = isComplete(pfr)
 
+	// first save the request to the DB
+	err = p.store.Init()
+	if err != nil {
+		log.WithError(err).Error("unable to initialise storage")
+		return err
+	}
 	err = p.store.Update(pfr)
 	if err != nil {
 		log.WithError(err).Error("failed to Update database")

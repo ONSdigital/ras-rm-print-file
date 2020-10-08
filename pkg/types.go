@@ -23,8 +23,8 @@ type Contact struct {
 }
 
 type PrintFileRequest struct {
-	PrintFile *PrintFile
-	Filename  string
+	DataFilename string
+	PrintFilename  string
 	Created   time.Time
 	Updated   time.Time
 	Status    Status
