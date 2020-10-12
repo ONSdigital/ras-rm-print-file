@@ -11,7 +11,7 @@ func TestAddErrorsWithoutInit(t *testing.T) {
 	assert := assert.New(t)
 
 	// if there's no client initialise then this method should error immediately
-	pfr, err := ds.Add("test", &pkg.PrintFile{})
+	pfr, err := ds.Add("test.csv", "test.json")
 	assert.NotNil(err)
 	assert.Nil(pfr)
 }
@@ -34,11 +34,11 @@ func TestFindIncomplete(t *testing.T) {
 
 func TestCreatePrintFileRequest(t *testing.T) {
 	assert := assert.New(t)
-	filename := "test.csv"
-	printFile := &pkg.PrintFile{}
-	pfr := createPrintFileRequest(filename, printFile)
-	assert.Equal(filename, pfr.Filename)
-	assert.Equal(printFile, pfr.PrintFile)
+	printfile := "test.csv"
+	datafile := "test.json"
+	pfr := createPrintFileRequest(printfile, datafile)
+	assert.Equal(printfile, pfr.PrintFilename)
+	assert.Equal(datafile, pfr.DataFilename)
 	assert.Equal(1, pfr.Attempts)
 	assert.False(pfr.Status.UploadedSFTP)
 	assert.False(pfr.Status.UploadedGCS)

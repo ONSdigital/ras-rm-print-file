@@ -12,13 +12,13 @@ type Printer struct {
 	mock.Mock
 }
 
-// Process provides a mock function with given fields: filename, printFile
-func (_m *Printer) Process(filename string, printFile *pkg.PrintFile) error {
-	ret := _m.Called(filename, printFile)
+// Process provides a mock function with given fields: filename, dataFilename
+func (_m *Printer) Process(filename string, dataFilename string) error {
+	ret := _m.Called(filename, dataFilename)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, *pkg.PrintFile) error); ok {
-		r0 = rf(filename, printFile)
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(filename, dataFilename)
 	} else {
 		r0 = ret.Error(0)
 	}

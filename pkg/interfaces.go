@@ -2,9 +2,15 @@ package pkg
 
 type Store interface {
 	Init() error
-	Add(filename string, p *PrintFile) (*PrintFileRequest, error)
+	Add(printFilename string, dataFilename string) (*PrintFileRequest, error)
 	Update(pfr *PrintFileRequest) error
 	FindIncomplete() ([]*PrintFileRequest, error)
+}
+
+type Download interface {
+	Init() error
+	Close() error
+	DownloadFile(filename string) (*PrintFile, error)
 }
 
 type Upload interface {
@@ -18,6 +24,6 @@ type Retry interface {
 }
 
 type Printer interface {
-	Process(filename string, printFile *PrintFile) error
+	Process(filename string, dataFilename string) error
 	ReProcess(printFileRequest *PrintFileRequest) error
 }

@@ -33,12 +33,18 @@ func TestProcess(t *testing.T) {
 	sftpUpload.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
 	sftpUpload.On("Close").Return(nil)
 
+	gcsDownload := new(mocks.Download)
+	gcsDownload.On("Init").Return(nil)
+	gcsDownload.On("DownloadFile","test.json").Return(printFile, nil)
+	gcsDownload.On("Close").Return(nil)
+
 	processor := &SDCPrinter{
 		store,
 		gcsUpload,
 		sftpUpload,
+		gcsDownload,
 	}
-	err := processor.Process("test.csv", printFile)
+	err := processor.Process("test.csv", "test.json")
 	assert.Nil(err)
 
 	store.AssertExpectations(t)

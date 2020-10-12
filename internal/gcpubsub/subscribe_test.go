@@ -55,10 +55,10 @@ func TestSubscribe(t *testing.T) {
 	dlqTopicSub := createDLQSubscription(err, dlqTopic, assert, sub)
 	defer dlqTopicSub.Delete(ctx)
 
-	filename := "test.csv"
+	printFilename := "test.csv"
 
 	printer := new(mocks.Printer)
-	printer.On("Process", filename, mock.Anything).Return(nil)
+	printer.On("Process", printFilename, mock.Anything).Return(nil)
 
 	subscriber := Subscriber{
 		Printer: printer,
@@ -67,7 +67,7 @@ func TestSubscribe(t *testing.T) {
 	msg := &pubsub.Message{
 		Data: []byte(printFile),
 		Attributes: map[string]string{
-			"filename": filename,
+			"printFilename": printFilename,
 		},
 	}
 	// now publish the message
@@ -84,7 +84,7 @@ func TestSubscribe(t *testing.T) {
 
 	//nothing should be on the DLQ
 	assert.Nil(dlqMsgData)
-	printer.AssertCalled(t, "Process", filename, mock.Anything)
+	printer.AssertCalled(t, "Process", printFilename, mock.Anything)
 }
 
 func TestSubscribeFailsMissingFilename(t *testing.T) {
@@ -102,10 +102,10 @@ func TestSubscribeFailsMissingFilename(t *testing.T) {
 	dlqTopicSub := createDLQSubscription(err, dlqTopic, assert, sub)
 	defer dlqTopicSub.Delete(ctx)
 
-	filename := "test.csv"
+	printFilename := "test.csv"
 
 	printer := new(mocks.Printer)
-	printer.On("Process", filename, mock.Anything).Return(nil)
+	printer.On("Process", printFilename, mock.Anything).Return(nil)
 
 	subscriber := Subscriber{
 		Printer: printer,
@@ -129,7 +129,7 @@ func TestSubscribeFailsMissingFilename(t *testing.T) {
 	time.Sleep(1 * time.Second)
 
 	assert.NotNil(dlqMsgData)
-	printer.AssertNotCalled(t, "Process", filename, mock.Anything)
+	printer.AssertNotCalled(t, "Process", printFilename, mock.Anything)
 }
 
 func createDLQSubscription(err error, dlqTopic *pubsub.Topic, assert *assert.Assertions, sub *pubsub.Subscription) *pubsub.Subscription {

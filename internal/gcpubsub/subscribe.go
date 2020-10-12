@@ -3,8 +3,6 @@ package gcpubsub
 import (
 	"cloud.google.com/go/pubsub"
 	"context"
-	"encoding/json"
-	"github.com/ONSdigital/ras-rm-print-file/internal/payload"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -38,26 +36,13 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 			log.WithField("delivery attempts", *msg.DeliveryAttempt).Info("Message delivery attempted")
 		}
 
-		printFileData := msg.Data
+		dataFileName := string(msg.Data)
 		attribute := msg.Attributes
-		filename, ok := attribute["filename"]
-
-		save(printFileData, filename)
+		printFilename, ok := attribute["printFilename"]
 
 		if ok {
-			log.WithField("filename", filename).Info("about to process print file")
-			var printFileEntries []*pkg.PrintFileEntry
-			err := json.Unmarshal(printFileData, &printFileEntries)
-			if err != nil {
-				log.WithError(err).Error("unable to marshall json payload - nacking message")
-				msg.Nack()
-				return
-			}
-			printFile := pkg.PrintFile{
-				PrintFiles: printFileEntries,
-			}
-			log.Debug("created print file")
-			err = s.Printer.Process(filename, &printFile)
+			log.WithField("printFilename", printFilename).Info("about to process print file")
+			err := s.Printer.Process(printFilename, dataFileName)
 			if err != nil {
 				log.WithError(err).Error("error processing printfile - nacking message")
 				//after x number of nacks message will be DLQ
@@ -67,7 +52,7 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 				msg.Ack()
 			}
 		} else {
-			log.Error("missing filename - sending to DLQ")
+			log.Error("missing printFilename - sending to DLQ")
 			err := deadLetter(ctx, client, msg)
 			if err != nil {
 				msg.Nack()
@@ -79,14 +64,6 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 		log.WithError(err).Error("error subscribing")
 		cancel()
 	}
-}
-
-func save(requestBody []byte, filename string) {
-	//copy the buffer to pass it safely to a go rountine
-	data := make([]byte, len(requestBody))
-	copy(data, requestBody)
-	payload := payload.Create()
-	go payload.Save(filename, data)
 }
 
 // send message to DLQ immediately

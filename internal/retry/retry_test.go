@@ -9,27 +9,10 @@ import (
 )
 
 func TestProcess(t *testing.T) {
-	printFileEntry := &pkg.PrintFileEntry{
-		SampleUnitRef:    "10001",
-		Iac:              "ai9bt497r7bn",
-		CaseGroupStatus:  "NOTSTARTED",
-		EnrolmentStatus:  "",
-		RespondentStatus: "",
-		Contact: pkg.Contact{
-			Forename:     "Jon",
-			Surname:      "Snow",
-			EmailAddress: "jon.snow@example.com",
-		},
-		Region: "HH",
-	}
-
-	printFile := &pkg.PrintFile{
-		PrintFiles: []*pkg.PrintFileEntry{printFileEntry},
-	}
 
 	printFileRequest := &pkg.PrintFileRequest{
-		PrintFile: printFile,
-		Filename:  "test.csv",
+		DataFilename: "test.json",
+		PrintFilename:  "test.csv",
 		Created:   time.Now(),
 		Status: pkg.Status{
 			Templated:    true,
@@ -61,27 +44,10 @@ func TestProcess(t *testing.T) {
 }
 
 func TestReProcessWhenCompleteDoesNotRun(t *testing.T) {
-	printFileEntry := &pkg.PrintFileEntry{
-		SampleUnitRef:    "10001",
-		Iac:              "ai9bt497r7bn",
-		CaseGroupStatus:  "NOTSTARTED",
-		EnrolmentStatus:  "",
-		RespondentStatus: "",
-		Contact: pkg.Contact{
-			Forename:     "Jon",
-			Surname:      "Snow",
-			EmailAddress: "jon.snow@example.com",
-		},
-		Region: "HH",
-	}
-
-	printFile := &pkg.PrintFile{
-		PrintFiles: []*pkg.PrintFileEntry{printFileEntry},
-	}
 
 	printFileRequest := &pkg.PrintFileRequest{
-		PrintFile: printFile,
-		Filename:  "test.csv",
+		DataFilename: "test.json",
+		PrintFilename:  "test.csv",
 		Created:   time.Now(),
 		Status: pkg.Status{
 			Templated:    true,

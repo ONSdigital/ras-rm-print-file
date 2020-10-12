@@ -12,13 +12,13 @@ type Store struct {
 	mock.Mock
 }
 
-// Add provides a mock function with given fields: filename, p
-func (_m *Store) Add(filename string, p *pkg.PrintFile) (*pkg.PrintFileRequest, error) {
-	ret := _m.Called(filename, p)
+// Add provides a mock function with given fields: printFilename, dataFilename
+func (_m *Store) Add(printFilename string, dataFilename string) (*pkg.PrintFileRequest, error) {
+	ret := _m.Called(printFilename, dataFilename)
 
 	var r0 *pkg.PrintFileRequest
-	if rf, ok := ret.Get(0).(func(string, *pkg.PrintFile) *pkg.PrintFileRequest); ok {
-		r0 = rf(filename, p)
+	if rf, ok := ret.Get(0).(func(string, string) *pkg.PrintFileRequest); ok {
+		r0 = rf(printFilename, dataFilename)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*pkg.PrintFileRequest)
@@ -26,8 +26,8 @@ func (_m *Store) Add(filename string, p *pkg.PrintFile) (*pkg.PrintFileRequest, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, *pkg.PrintFile) error); ok {
-		r1 = rf(filename, p)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(printFilename, dataFilename)
 	} else {
 		r1 = ret.Error(1)
 	}
