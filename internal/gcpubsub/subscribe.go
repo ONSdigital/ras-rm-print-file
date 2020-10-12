@@ -38,11 +38,11 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 
 		dataFileName := string(msg.Data)
 		attribute := msg.Attributes
-		filename, ok := attribute["filename"]
+		printFilename, ok := attribute["printFilename"]
 
 		if ok {
-			log.WithField("filename", filename).Info("about to process print file")
-			err := s.Printer.Process(filename, dataFileName)
+			log.WithField("printFilename", printFilename).Info("about to process print file")
+			err := s.Printer.Process(printFilename, dataFileName)
 			if err != nil {
 				log.WithError(err).Error("error processing printfile - nacking message")
 				//after x number of nacks message will be DLQ
@@ -52,7 +52,7 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 				msg.Ack()
 			}
 		} else {
-			log.Error("missing filename - sending to DLQ")
+			log.Error("missing printFilename - sending to DLQ")
 			err := deadLetter(ctx, client, msg)
 			if err != nil {
 				msg.Nack()
