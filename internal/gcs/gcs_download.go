@@ -49,8 +49,8 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 		return nil, errors.New("please initialise the connection")
 	}
 	bucket := viper.GetString("BUCKET_NAME")
-	folder := viper.GetString("FOLDER_NAME")
-	path := bucket + folder
+	prefix := viper.GetString("PREFIX_NAME")
+	path := bucket + prefix
 	log.WithField("filename", filename).WithField("path", path).Info("downloading from bucket")
 
 	ctx, cancel := context.WithTimeout(d.ctx, time.Second*50)
