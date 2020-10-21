@@ -58,7 +58,7 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 		path = prefix + ps + filename
 	}
 
-	log.WithField("path", path).WithField("bucket", bucket).Info("downloading from bucket")
+	log.WithField("filename", path).WithField("bucket", bucket).Info("downloading from bucket")
 
 	ctx, cancel := context.WithTimeout(d.ctx, time.Second*50)
 	defer cancel()
