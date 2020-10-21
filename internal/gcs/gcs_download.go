@@ -59,7 +59,7 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 	// GCSUpload an object with storage.Writer.
 	rc, err := d.client.Bucket(bucket).Object(path).NewReader(ctx)
 	if err != nil {
-		log.WithError(err).Error("error reading from bucket")
+		log.WithError(err).Error("error reading from bucket " + path)
 		return nil, err
 	}
 	log.WithField("filename", path).WithField("bucket", bucket).Info("about to read contents from bucket")
