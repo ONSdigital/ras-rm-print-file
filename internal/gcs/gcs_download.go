@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -50,7 +51,13 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 	}
 	bucket := viper.GetString("BUCKET_NAME")
 	prefix := viper.GetString("PREFIX_NAME")
-	path := prefix + filename
+
+	path := filename
+	if prefix != "" {
+		ps := string(os.PathSeparator)
+		path = prefix + ps + filename
+	}
+
 	log.WithField("path", path).WithField("bucket", bucket).Info("downloading from bucket")
 
 	ctx, cancel := context.WithTimeout(d.ctx, time.Second*50)

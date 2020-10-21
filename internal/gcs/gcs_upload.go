@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -46,7 +47,13 @@ func (u *GCSUpload) UploadFile(filename string, contents []byte) error {
 	}
 	bucket := viper.GetString("BUCKET_NAME")
 	prefix := viper.GetString("PREFIX_NAME")
-	path := prefix + filename
+
+	path := filename
+	if prefix != "" {
+		ps := string(os.PathSeparator)
+		path = prefix + ps + filename
+	}
+
 	log.WithField("filename", path).WithField("bucket", bucket).Info("uploading to bucket")
 
 	ctx, cancel := context.WithTimeout(u.ctx, time.Second*50)
