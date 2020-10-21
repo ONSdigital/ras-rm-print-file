@@ -51,16 +51,15 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 	bucket := viper.GetString("BUCKET_NAME")
 	prefix := viper.GetString("PREFIX_NAME")
 	path := prefix + filename
-	fullpath := bucket + path
 	log.WithField("path", path).WithField("bucket", bucket).Info("downloading from bucket")
 
 	ctx, cancel := context.WithTimeout(d.ctx, time.Second*50)
 	defer cancel()
 
 	// GCSUpload an object with storage.Writer.
-	rc, err := d.client.Bucket(bucket).Object(fullpath).NewReader(ctx)
+	rc, err := d.client.Bucket(bucket).Object(path).NewReader(ctx)
 	if err != nil {
-		log.WithError(err).Error("error reading from bucket " + fullpath)
+		log.WithError(err).Error("error reading from bucket " + bucket + path)
 		return nil, err
 	}
 	log.WithField("filename", path).WithField("bucket", bucket).Info("about to read contents from bucket")
