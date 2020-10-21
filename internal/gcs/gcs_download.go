@@ -2,16 +2,17 @@ package gcs
 
 import (
 	"bytes"
-	"cloud.google.com/go/storage"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"time"
+
+	"cloud.google.com/go/storage"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"io"
-	"time"
 )
 
 type GCSDownload struct {
@@ -43,12 +44,14 @@ func (d *GCSDownload) Close() error {
 }
 
 func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
-	//loads the payload from a GCS bucket
+	// loads the payload from a GCS bucket
 	if d.client == nil {
 		return nil, errors.New("please initialise the connection")
 	}
 	bucket := viper.GetString("BUCKET_NAME")
-	log.WithField("filename", filename).WithField("bucket", bucket).Info("downloading from bucket")
+	folder := viper.GetString("FOLDER_NAME")
+	path := bucket + folder
+	log.WithField("filename", filename).WithField("path", path).Info("downloading from bucket")
 
 	ctx, cancel := context.WithTimeout(d.ctx, time.Second*50)
 	defer cancel()
@@ -59,7 +62,7 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 		log.WithError(err).Error("error reading from bucket")
 		return nil, err
 	}
-	log.WithField("filename", filename).WithField("bucket", bucket).Info("about to read contents from bucket")
+	log.WithField("filename", filename).WithField("path", path).Info("about to read contents from bucket")
 
 	buf := &bytes.Buffer{}
 	defer rc.Close()
@@ -68,7 +71,7 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 		return nil, err
 	}
 
-	log.WithField("filename", filename).WithField("bucket", bucket).Info("upload to bucket complete")
+	log.WithField("filename", filename).WithField("path", path).Info("upload to bucket complete")
 
 	var printFileEntries []*pkg.PrintFileEntry
 	err = json.Unmarshal(buf.Bytes(), &printFileEntries)

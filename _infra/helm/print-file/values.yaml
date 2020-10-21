@@ -34,5 +34,6 @@ gcp:
   project: ras-rm-sandbox
   bucket:
     name: print-file
+    folder: /./
   topic: print-file-jobs
   subscription: print-file-workers
