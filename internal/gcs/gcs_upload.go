@@ -53,7 +53,7 @@ func (u *GCSUpload) UploadFile(filename string, contents []byte) error {
 	defer cancel()
 
 	// GCSUpload an object with storage.Writer.
-	wc := u.client.Bucket(bucket).Object(filename).NewWriter(ctx)
+	wc := u.client.Bucket(bucket).Object(path).NewWriter(ctx)
 	log.WithField("filename", path).WithField("bucket", bucket).Info("about to write contents to bucket")
 	if _, err := wc.Write(contents); err != nil {
 		log.WithError(err).Error("error writing bytes to bucket")
