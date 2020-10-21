@@ -46,15 +46,15 @@ func (u *GCSUpload) UploadFile(filename string, contents []byte) error {
 	}
 	bucket := viper.GetString("BUCKET_NAME")
 	prefix := viper.GetString("PREFIX_NAME")
-	path := bucket + prefix
-	log.WithField("filename", filename).WithField("path", path).Info("uploading to bucket")
+	path := prefix + filename
+	log.WithField("filename", path).WithField("bucket", bucket).Info("uploading to bucket")
 
 	ctx, cancel := context.WithTimeout(u.ctx, time.Second*50)
 	defer cancel()
 
 	// GCSUpload an object with storage.Writer.
 	wc := u.client.Bucket(bucket).Object(filename).NewWriter(ctx)
-	log.WithField("filename", filename).WithField("path", path).Info("about to write contents to bucket")
+	log.WithField("filename", path).WithField("bucket", bucket).Info("about to write contents to bucket")
 	if _, err := wc.Write(contents); err != nil {
 		log.WithError(err).Error("error writing bytes to bucket")
 		return err
@@ -63,6 +63,6 @@ func (u *GCSUpload) UploadFile(filename string, contents []byte) error {
 		log.WithError(err).Error("error closing bucket writer")
 		return err
 	}
-	log.WithField("filename", filename).WithField("path", path).Info("upload to bucket complete")
+	log.WithField("filename", path).WithField("bucket", bucket).Info("upload to bucket complete")
 	return nil
 }

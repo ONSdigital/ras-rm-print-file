@@ -50,8 +50,8 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 	}
 	bucket := viper.GetString("BUCKET_NAME")
 	prefix := viper.GetString("PREFIX_NAME")
-	path := bucket + prefix
-	log.WithField("filename", filename).WithField("path", path).Info("downloading from bucket")
+	path := prefix + filename
+	log.WithField("filename", path).WithField("bucket", bucket).Info("downloading from bucket")
 
 	ctx, cancel := context.WithTimeout(d.ctx, time.Second*50)
 	defer cancel()
@@ -62,7 +62,7 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 		log.WithError(err).Error("error reading from bucket")
 		return nil, err
 	}
-	log.WithField("filename", filename).WithField("path", path).Info("about to read contents from bucket")
+	log.WithField("filename", path).WithField("bucket", bucket).Info("about to read contents from bucket")
 
 	buf := &bytes.Buffer{}
 	defer rc.Close()
@@ -71,7 +71,7 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 		return nil, err
 	}
 
-	log.WithField("filename", filename).WithField("path", path).Info("upload to bucket complete")
+	log.WithField("filename", path).WithField("bucket", bucket).Info("upload to bucket complete")
 
 	var printFileEntries []*pkg.PrintFileEntry
 	err = json.Unmarshal(buf.Bytes(), &printFileEntries)
