@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -50,13 +49,7 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 		return nil, errors.New("please initialise the connection")
 	}
 	bucket := viper.GetString("BUCKET_NAME")
-	prefix := viper.GetString("PREFIX_NAME")
-
-	path := filename
-	if prefix != "" {
-		ps := string(os.PathSeparator)
-		path = prefix + ps + filename
-	}
+	path := bucket_path(filename)
 
 	log.WithField("filename", path).WithField("bucket", bucket).Info("downloading from bucket")
 
