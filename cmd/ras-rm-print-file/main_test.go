@@ -1,10 +1,11 @@
 package main
 
 import (
+	"testing"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestConfigure(t *testing.T) {
@@ -13,8 +14,9 @@ func TestConfigure(t *testing.T) {
 
 	assert.Equal("debug", viper.GetString("LOG_LEVEL"))
 	assert.Equal("ras-rm-printfile", viper.GetString("BUCKET_NAME"))
+	assert.Equal("", viper.GetString("BUCKET_PREFIX"))
 	assert.Equal("ras-rm-sandbox", viper.GetString("GOOGLE_CLOUD_PROJECT"))
-	assert.Equal("localhost", viper.GetString("SFTP_HOSt"))
+	assert.Equal("localhost", viper.GetString("SFTP_HOST"))
 	assert.Equal("22", viper.GetString("SFTP_PORT"))
 	assert.Equal("sftp", viper.GetString("SFTP_USERNAME"))
 	assert.Equal("sftp", viper.GetString("SFTP_PASSWORD"))
