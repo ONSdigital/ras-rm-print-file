@@ -45,7 +45,7 @@ func (u *GCSUpload) UploadFile(filename string, contents []byte) error {
 		return errors.New("please initialise the connection")
 	}
 	bucket := viper.GetString("BUCKET_NAME")
-	path := bucket_path(filename)
+	path := bucketPath(filename)
 
 	log.WithField("filename", path).WithField("bucket", bucket).Info("uploading to bucket")
 

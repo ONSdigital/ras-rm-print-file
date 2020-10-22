@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func bucket_path(filename string) string {
+func bucketPath(filename string) string {
 	prefix := viper.GetString("PREFIX_NAME")
 
 	path := filename
