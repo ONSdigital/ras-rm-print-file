@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/ONSdigital/ras-rm-print-file/internal/config"
 	"github.com/ONSdigital/ras-rm-print-file/internal/gcpubsub"
 	"github.com/ONSdigital/ras-rm-print-file/internal/processor"
@@ -9,7 +11,6 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"net/http"
 )
 
 func configure() {
