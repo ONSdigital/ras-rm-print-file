@@ -1,11 +1,14 @@
 package gcpubsub
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
+
+	"cloud.google.com/go/pubsub"
+	logger "github.com/ONSdigital/ras-rm-print-file/logging"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 type Subscriber struct {
@@ -13,26 +16,28 @@ type Subscriber struct {
 }
 
 func (s Subscriber) Start() {
-	log.Debug("starting worker process")
+	logger.Debug("starting worker process")
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, viper.GetString("GOOGLE_CLOUD_PROJECT"))
 	if err != nil {
 		log.Fatal(err)
+		logger.Fatal("failed to start worker process", zap.Error(err))
 	}
 	defer client.Close()
-	log.Debug("about to subscribe")
+	logger.Debug("about to subscribe")
 	s.subscribe(ctx, client)
 }
 
 func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 	subId := viper.GetString("PUBSUB_SUB_ID")
-	log.WithField("subId", subId).Info("subscribing to subscription")
+	logger.Info("subscribing to subscription", zap.String("subId", subId))
 	sub := client.Subscription(subId)
 	cctx, cancel := context.WithCancel(ctx)
-	log.Debug("waiting to receive")
+	logger.Debug("waiting to receive")
 	err := sub.Receive(cctx, func(ctx context.Context, msg *pubsub.Message) {
-		log.Info("print file received - processing")
+		logger.Info("print file received - processing")
 		if msg.DeliveryAttempt != nil {
+			// TODO: Handle DeliverAttempt *int in Zap logger:
 			log.WithField("delivery attempts", *msg.DeliveryAttempt).Info("Message delivery attempted")
 		}
 
@@ -41,18 +46,18 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 		printFilename, ok := attribute["printFilename"]
 
 		if ok {
-			log.WithField("printFilename", printFilename).Info("about to process print file")
+			logger.Info("about to process print file", zap.String("printFilename", printFilename))
 			err := s.Printer.Process(printFilename, dataFileName)
 			if err != nil {
-				log.WithError(err).Error("error processing printfile - nacking message")
-				//after x number of nacks message will be DLQ
+				logger.Error("error processing printfile - nacking message", zap.Error(err))
+				// after x number of nacks message will be DLQ
 				msg.Nack()
 			} else {
-				log.Info("print file processed - acking message")
+				logger.Info("print file processed - acking message")
 				msg.Ack()
 			}
 		} else {
-			log.Error("missing printFilename - sending to DLQ")
+			logger.Error("missing printFilename - sending to DLQ")
 			err := deadLetter(ctx, client, msg)
 			if err != nil {
 				msg.Nack()
@@ -61,21 +66,22 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 	})
 
 	if err != nil {
-		log.WithError(err).Error("error subscribing")
+		logger.Error("error subscribing", zap.Error(err))
 		cancel()
 	}
 }
 
 // send message to DLQ immediately
 func deadLetter(ctx context.Context, client *pubsub.Client, msg *pubsub.Message) error {
-	//DLQ are always named TOPIC + -dead-letter in our terraform scripts
+	// DLQ are always named TOPIC + -dead-letter in our terraform scripts
 	deadLetterTopic := viper.GetString("PUB_SUB_TOPIC") + "-dead-letter"
 	dlq := client.Topic(deadLetterTopic)
 	id, err := dlq.Publish(ctx, msg).Get(ctx)
 	if err != nil {
+		// TODO: Handle msg *Message in Zap logger:
 		log.WithField("msg", string(msg.Data)).WithError(err).Error("unable to forward to dead letter topic")
 		return err
 	}
-	log.WithField("id", id).Info("published to dead letter topic")
+	logger.Info("published to dead letter topic", zap.String("id", id))
 	return nil
 }
