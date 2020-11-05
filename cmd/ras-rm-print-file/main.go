@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/ONSdigital/ras-rm-print-file/internal/config"
@@ -51,5 +50,7 @@ func main() {
 	go startPubSubListener()
 
 	logger.Info("started")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		logger.Fatal("service failed")
+	}
 }
