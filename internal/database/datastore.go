@@ -9,7 +9,6 @@ import (
 	"cloud.google.com/go/datastore"
 	logger "github.com/ONSdigital/ras-rm-print-file/logging"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
@@ -25,7 +24,8 @@ func (s *DataStore) Init() error {
 	logger.Info("initialising google datastore connection")
 	s.client, err = datastore.NewClient(s.ctx, viper.GetString("GOOGLE_CLOUD_PROJECT"))
 	if err != nil {
-		logger.Error("error creating gcp client", zap.Error(err))
+		logger.Error("error creating gcp client",
+			zap.Error(err))
 		return fmt.Errorf("datastore.NewClient: %v", err)
 	}
 	logger.Info("connected to google datastore")
@@ -54,7 +54,8 @@ func (s *DataStore) Add(printFilename string, dataFilename string) (*pkg.PrintFi
 	})
 
 	if err != nil {
-		logger.Error("unable to DataStore entry", zap.Error(err))
+		logger.Error("unable to DataStore entry",
+			zap.Error(err))
 		return nil, fmt.Errorf("unable to to DataStore entry: %v", err)
 	}
 	return pfr, nil
@@ -84,15 +85,18 @@ func (s *DataStore) Update(pfr *pkg.PrintFileRequest) error {
 	key := datastore.NameKey("PrintFileRequest", pfr.PrintFilename, nil)
 	tx, err := s.client.NewTransaction(s.ctx)
 	if err != nil {
-		logger.Error("unable to start transaction", zap.Error(err))
+		logger.Error("unable to start transaction",
+			zap.Error(err))
 		return err
 	}
 	if _, err := tx.Put(key, pfr); err != nil {
-		logger.Error("unable to Update entity", zap.Error(err))
+		logger.Error("unable to Update entity",
+			zap.Error(err))
 		return err
 	}
 	if _, err := tx.Commit(); err != nil {
-		logger.Error("unable to commit entity to database", zap.Error(err))
+		logger.Error("unable to commit entity to database",
+			zap.Error(err))
 		return err
 	}
 	return nil
@@ -110,11 +114,12 @@ func (s *DataStore) FindIncomplete() ([]*pkg.PrintFileRequest, error) {
 	incomplete := len(keys)
 	logger.Info("found incomplete requests", zap.Int("incomplete", incomplete))
 	for _, v := range keys {
-		// TODO: Handle *datastore.Key in Zap logger:
-		log.WithField("id", v).Debug("request found to be incomplete")
+		logger.Debug("request found to be incomplete",
+			zap.Any("id", v))
 	}
 	if err != nil {
-		logger.Error("unable to query datastore", zap.Error(err))
+		logger.Error("unable to query datastore",
+			zap.Error(err))
 		return nil, err
 	}
 	return pfr, nil

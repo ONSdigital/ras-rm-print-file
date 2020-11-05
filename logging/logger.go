@@ -32,12 +32,17 @@ func Debug(message string, fields ...zapcore.Field) {
 	logger.Debug(message, fields...)
 }
 
+// Warn passes through a Warn level message to zapdriver
+func Warn(message string, fields ...zapcore.Field) {
+	logger.Warn(message, fields...)
+}
+
 // Error passes through an Error level message to zapdriver
 func Error(message string, fields ...zapcore.Field) {
 	logger.Error(message, fields...)
 }
 
-// Error passes through a Fatal level message to zapdriver
+// Fatal passes through a Fatal level message to zapdriver
 func Fatal(message string, fields ...zapcore.Field) {
 	logger.Fatal(message, fields...)
 }

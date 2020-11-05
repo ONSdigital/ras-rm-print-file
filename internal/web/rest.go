@@ -2,13 +2,14 @@ package web
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"net/http"
+
+	logger "github.com/ONSdigital/ras-rm-print-file/logging"
 )
 
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Debug("setting content type to application/json")
+		logger.Debug("setting content type to application/json")
 		w.Header().Add("Content-Type", "application/json")
 		next.ServeHTTP(w, r)
 	})
@@ -17,11 +18,11 @@ func Middleware(next http.Handler) http.Handler {
 func Alive(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		log.Debug("alive OK")
+		logger.Debug("alive OK")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "{\"status\": \"OK\"}")
 	default:
-		log.Debug("alive -method not allowed")
+		logger.Debug("alive -method not allowed")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprint(w, "Only GET methods are supported")
 	}
@@ -30,11 +31,11 @@ func Alive(w http.ResponseWriter, r *http.Request) {
 func Ready(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		log.Debug("ready OK")
+		logger.Debug("ready OK")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "{\"status\": \"READY\"}")
 	default:
-		log.Debug("ready - method not allowed")
+		logger.Debug("ready - method not allowed")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprint(w, "Only GET methods are supported")
 	}

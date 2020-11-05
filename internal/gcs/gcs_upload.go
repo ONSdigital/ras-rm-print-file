@@ -23,7 +23,8 @@ func (u *GCSUpload) Init() error {
 	logger.Info("initialising GCS connection")
 	u.client, err = storage.NewClient(u.ctx)
 	if err != nil {
-		logger.Error("error creating gcp client", zap.Error(err))
+		logger.Error("error creating gcp client",
+			zap.Error(err))
 		return fmt.Errorf("storage.NewClient: %v", err)
 	}
 	logger.Info("connected to GCS")
@@ -68,7 +69,8 @@ func (u *GCSUpload) UploadFile(filename string, contents []byte) error {
 		return err
 	}
 	if err := wc.Close(); err != nil {
-		logger.Error("error closing bucket writer", zap.Error(err))
+		logger.Error("error closing bucket writer",
+			zap.Error(err))
 		return err
 	}
 	logger.Info("upload to bucket complete",

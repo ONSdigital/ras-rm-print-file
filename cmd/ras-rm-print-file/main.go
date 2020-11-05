@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/ONSdigital/ras-rm-print-file/internal/config"
@@ -14,7 +15,7 @@ import (
 )
 
 func configure() {
-	//config
+	// config
 	viper.AutomaticEnv()
 	config.SetDefaults()
 }
@@ -39,7 +40,7 @@ func main() {
 	configure()
 	logger.Info("starting print-file")
 
-	//configure the gorilla router
+	// configure the gorilla router
 	r := mux.NewRouter()
 	r.Use(web.Middleware)
 	r.HandleFunc("/alive", web.Alive)
@@ -50,5 +51,5 @@ func main() {
 	go startPubSubListener()
 
 	logger.Info("started")
-	logger.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

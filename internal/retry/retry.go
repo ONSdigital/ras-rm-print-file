@@ -1,12 +1,14 @@
 package retry
 
 import (
+	"time"
+
 	"github.com/ONSdigital/ras-rm-print-file/internal/database"
 	"github.com/ONSdigital/ras-rm-print-file/internal/processor"
+	logger "github.com/ONSdigital/ras-rm-print-file/logging"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"time"
+	"go.uber.org/zap"
 )
 
 type BackoffRetry struct {
@@ -16,40 +18,45 @@ type BackoffRetry struct {
 
 func (b BackoffRetry) Start() {
 	configDelay := viper.GetInt64("RETRY_DELAY")
-	log.WithField("delay", configDelay).Debug("retrieving delay setting from config")
+	logger.Debug("retrieving delay setting from config",
+		zap.Int64("delay", configDelay))
 
 	delay := time.Duration(configDelay) * time.Millisecond
 	b.printer = processor.Create()
 	b.store = &database.DataStore{}
 	for {
-		log.Info("about to run retry service")
+		logger.Info("about to run retry service")
 		b.process()
-		log.WithField("delay", delay.String()).Info("retry sleeping")
+		logger.Info("retry sleeping",
+			zap.String("delay", delay.String()))
 		time.Sleep(delay)
-		log.Info("retry sleep complete")
+		logger.Info("retry sleep complete")
 	}
 }
 
 func (b BackoffRetry) process() {
 	err := b.store.Init()
 	if err != nil {
-		log.WithError(err).Error("unable to initialise storage")
+		logger.Error("unable to initialise storage",
+			zap.Error(err))
 		return
 	}
 	printRequests, err := b.store.FindIncomplete()
 	if err != nil {
-		log.WithError(err).Error("unable to find incomplete print file requests")
+		logger.Error("unable to find incomplete print file requests",
+			zap.Error(err))
 		return
 	}
 	if printRequests == nil {
-		log.Info("no incomplete print file requests to reprocess")
+		logger.Info("no incomplete print file requests to reprocess")
 		return
 	}
 	incomplete := len(printRequests)
-	log.WithField("incomplete", incomplete).Info("finding all incomplete print file requests")
+	logger.Info("finding all incomplete print file requests",
+		zap.Int("incomplete", incomplete))
 
 	for _, printRequest := range printRequests {
-		log.Info("reprocessing print request")
+		logger.Info("reprocessing print request")
 
 		b.printer.ReProcess(printRequest)
 	}

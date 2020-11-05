@@ -27,7 +27,8 @@ func (d *GCSDownload) Init() error {
 	logger.Info("initialising GCS connection")
 	d.client, err = storage.NewClient(d.ctx)
 	if err != nil {
-		logger.Error("error creating gcp client", zap.Error(err))
+		logger.Error("error creating gcp client",
+			zap.Error(err))
 		return fmt.Errorf("storage.NewClient: %v", err)
 	}
 	logger.Info("connected to GCS")
@@ -62,7 +63,8 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 	// GCSUpload an object with storage.Writer.
 	rc, err := d.client.Bucket(bucket).Object(path).NewReader(ctx)
 	if err != nil {
-		logger.Error("error reading from bucket "+bucket+path, zap.Error(err))
+		logger.Error("error reading from bucket "+bucket+path,
+			zap.Error(err))
 		return nil, err
 	}
 	logger.Info("about to read contents from bucket",
@@ -72,7 +74,8 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 	buf := &bytes.Buffer{}
 	defer rc.Close()
 	if _, err := io.Copy(buf, rc); err != nil {
-		logger.Error("error reading bytes from bucket", zap.Error(err))
+		logger.Error("error reading bytes from bucket",
+			zap.Error(err))
 		return nil, err
 	}
 
@@ -83,7 +86,8 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 	var printFileEntries []*pkg.PrintFileEntry
 	err = json.Unmarshal(buf.Bytes(), &printFileEntries)
 	if err != nil {
-		logger.Error("unable to marshall json payload - nacking message", zap.Error(err))
+		logger.Error("unable to marshall json payload - nacking message",
+			zap.Error(err))
 		return nil, err
 	}
 	printFile := pkg.PrintFile{

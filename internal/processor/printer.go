@@ -11,7 +11,6 @@ import (
 	"github.com/ONSdigital/ras-rm-print-file/internal/sftp"
 	logger "github.com/ONSdigital/ras-rm-print-file/logging"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
-	log "github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 )
 
@@ -40,18 +39,21 @@ func (p *SDCPrinter) Process(filename string, datafileName string) error {
 	// first save the request to the DB
 	err := p.store.Init()
 	if err != nil {
-		logger.Error("unable to initialise storage", zap.Error(err))
+		logger.Error("unable to initialise storage",
+			zap.Error(err))
 		return err
 	}
 	printFileRequest, err := p.store.Add(filename, datafileName)
 	if err != nil {
-		logger.Error("unable to store print file request ", zap.Error(err))
+		logger.Error("unable to store print file request ",
+			zap.Error(err))
 		return err
 	}
 	// load the data file
 	err = p.gcsDownload.Init()
 	if err != nil {
-		logger.Error("unable to initialise storage", zap.Error(err))
+		logger.Error("unable to initialise storage",
+			zap.Error(err))
 		return err
 	}
 
@@ -86,7 +88,8 @@ func (p *SDCPrinter) Process(filename string, datafileName string) error {
 
 	err = p.store.Update(printFileRequest)
 	if err != nil {
-		logger.Error("failed to Update database", zap.Error(err))
+		logger.Error("failed to Update database",
+			zap.Error(err))
 		return err
 	}
 	return nil
@@ -104,7 +107,8 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 	// load the data file
 	err := p.gcsDownload.Init()
 	if err != nil {
-		logger.Error("unable to initialise storage", zap.Error(err))
+		logger.Error("unable to initialise storage",
+			zap.Error(err))
 		return err
 	}
 
@@ -142,12 +146,14 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 	// first save the request to the DB
 	err = p.store.Init()
 	if err != nil {
-		logger.Error("unable to initialise storage", zap.Error(err))
+		logger.Error("unable to initialise storage",
+			zap.Error(err))
 		return err
 	}
 	err = p.store.Update(pfr)
 	if err != nil {
-		logger.Error("failed to Update database", zap.Error(err))
+		logger.Error("failed to Update database",
+			zap.Error(err))
 		return err
 	}
 	return nil
@@ -158,16 +164,21 @@ func isComplete(printFileRequest *pkg.PrintFileRequest) bool {
 }
 
 func upload(filename string, buffer *bytes.Buffer, uploader pkg.Upload, name string) bool {
-	log.WithField("filename", filename).Infof("uploading file to %v", name)
+	logger.Info("uploading file to ",
+		zap.String("filename", filename))
 	err := uploader.Init()
 	if err != nil {
-		log.WithError(err).Errorf("failed to initialise %v upload", name)
+		logger.Error("failed to initialise upload to ",
+			zap.String("name", name),
+			zap.Error(err))
 		return false
 	}
 	defer uploader.Close()
 	err = uploader.UploadFile(filename, buffer.Bytes())
 	if err != nil {
-		log.WithError(err).Errorf("failed to upload to %v", name)
+		logger.Error("failed to upload to ",
+			zap.String("name", name),
+			zap.Error(err))
 		return false
 	}
 	return true
@@ -199,7 +210,8 @@ func applyTemplate(pf *pkg.PrintFile) (*bytes.Buffer, error) {
 	// find the template
 	wd, err := os.Getwd()
 	if err != nil {
-		logger.Error("unable to load template", zap.Error(err))
+		logger.Error("unable to load template",
+			zap.Error(err))
 	}
 	// Template location
 	templateLocation := wd + "/templates/" + printTemplate
@@ -209,7 +221,8 @@ func applyTemplate(pf *pkg.PrintFile) (*bytes.Buffer, error) {
 		zap.String("ApplyTemplate", printTemplate))
 	t, err := template.New(printTemplate).ParseFiles(templateLocation)
 	if err != nil {
-		logger.Error("failed to find ApplyTemplate", zap.Error(err))
+		logger.Error("failed to find ApplyTemplate",
+			zap.Error(err))
 		return nil, err
 	}
 
@@ -219,7 +232,8 @@ func applyTemplate(pf *pkg.PrintFile) (*bytes.Buffer, error) {
 	buf := &bytes.Buffer{}
 	err = t.Execute(buf, pf)
 	if err != nil {
-		logger.Error("failed to process ApplyTemplate", zap.Error(err))
+		logger.Error("failed to process ApplyTemplate",
+			zap.Error(err))
 		return nil, err
 	}
 	logger.Info("templating complete",
