@@ -56,17 +56,33 @@ func (u *GCSUpload) UploadFile(filename string, contents []byte) error {
 	ctx, cancel := context.WithTimeout(u.ctx, time.Second*50)
 	defer cancel()
 
-	// GCSUpload an object with storage.Writer.
-	wc := u.client.Bucket(bucket).Object(path).NewWriter(ctx)
 	logger.Info("about to write contents to bucket",
 		zap.String("filename", path),
 		zap.String("bucket", bucket))
+	// GCSUpload an object with storage.Writer.
+	object := u.client.Bucket(bucket).Object(path)
+
+	// check if the file exists from a previous run
+	_, err := object.Attrs(ctx)
+	if err == storage.ErrObjectNotExist {
+		logger.Info("File does not exist",
+			zap.String("bucket", bucket),
+			zap.String("path", path))
+	} else if err != nil {
+		logger.Info("File already exists in bucket",
+			zap.String("bucket", bucket),
+			zap.String("path", path))
+		return nil
+	}
+
+	wc := object.NewWriter(ctx)
 
 	if _, err := wc.Write(contents); err != nil {
 		logger.Error("error writing bytes to bucket",
 			zap.String("bucket", bucket),
 			zap.String("path", path))
 		return err
+
 	}
 	if err := wc.Close(); err != nil {
 		logger.Error("error closing bucket writer",
