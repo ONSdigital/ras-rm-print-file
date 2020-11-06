@@ -3,7 +3,6 @@ package main
 import (
 	"testing"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,5 +21,4 @@ func TestConfigure(t *testing.T) {
 	assert.Equal("sftp", viper.GetString("SFTP_PASSWORD"))
 	assert.Equal("printfiles", viper.GetString("SFTP_DIRECTORY"))
 
-	assert.Equal(log.DebugLevel.String(), log.GetLevel().String())
 }

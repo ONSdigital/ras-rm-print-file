@@ -1,14 +1,16 @@
 package database
 
 import (
-	"cloud.google.com/go/datastore"
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ONSdigital/ras-rm-print-file/pkg"
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"time"
+
+	"cloud.google.com/go/datastore"
+	logger "github.com/ONSdigital/ras-rm-print-file/logging"
+	"github.com/ONSdigital/ras-rm-print-file/pkg"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 type DataStore struct {
@@ -19,13 +21,14 @@ type DataStore struct {
 func (s *DataStore) Init() error {
 	var err error
 	s.ctx = context.Background()
-	log.Info("initialising google datastore connection")
+	logger.Info("initialising google datastore connection")
 	s.client, err = datastore.NewClient(s.ctx, viper.GetString("GOOGLE_CLOUD_PROJECT"))
 	if err != nil {
-		log.WithError(err).Error("error creating gcp client")
+		logger.Error("error creating gcp client",
+			zap.Error(err))
 		return fmt.Errorf("datastore.NewClient: %v", err)
 	}
-	log.Info("connected to google datastore")
+	logger.Info("connected to google datastore")
 	return nil
 
 }
@@ -51,7 +54,8 @@ func (s *DataStore) Add(printFilename string, dataFilename string) (*pkg.PrintFi
 	})
 
 	if err != nil {
-		log.WithError(err).Error("unable to DataStore entry")
+		logger.Error("unable to DataStore entry",
+			zap.Error(err))
 		return nil, fmt.Errorf("unable to to DataStore entry: %v", err)
 	}
 	return pfr, nil
@@ -59,11 +63,11 @@ func (s *DataStore) Add(printFilename string, dataFilename string) (*pkg.PrintFi
 
 func createPrintFileRequest(printFilename string, dataFilename string) *pkg.PrintFileRequest {
 	pfr := &pkg.PrintFileRequest{
-		DataFilename: dataFilename,
-		PrintFilename:  printFilename,
-		Created:   time.Now(),
-		Updated:   time.Now(),
-		Attempts:  1,
+		DataFilename:  dataFilename,
+		PrintFilename: printFilename,
+		Created:       time.Now(),
+		Updated:       time.Now(),
+		Attempts:      1,
 		Status: pkg.Status{
 			Templated:    false,
 			UploadedGCS:  false,
@@ -81,15 +85,18 @@ func (s *DataStore) Update(pfr *pkg.PrintFileRequest) error {
 	key := datastore.NameKey("PrintFileRequest", pfr.PrintFilename, nil)
 	tx, err := s.client.NewTransaction(s.ctx)
 	if err != nil {
-		log.WithError(err).Error("unable to start transaction")
+		logger.Error("unable to start transaction",
+			zap.Error(err))
 		return err
 	}
 	if _, err := tx.Put(key, pfr); err != nil {
-		log.WithError(err).Error("unable to Update entity")
+		logger.Error("unable to Update entity",
+			zap.Error(err))
 		return err
 	}
 	if _, err := tx.Commit(); err != nil {
-		log.WithError(err).Error("unable to commit entity to database")
+		logger.Error("unable to commit entity to database",
+			zap.Error(err))
 		return err
 	}
 	return nil
@@ -99,18 +106,20 @@ func (s *DataStore) FindIncomplete() ([]*pkg.PrintFileRequest, error) {
 	if s.client == nil {
 		return nil, errors.New("please initialise the connection")
 	}
-	log.Debug("about to execute query on datastore")
+	logger.Debug("about to execute query on datastore")
 	var pfr []*pkg.PrintFileRequest
 
 	query := datastore.NewQuery("PrintFileRequest").Filter("Status.Completed =", false)
 	keys, err := s.client.GetAll(s.ctx, query, &pfr)
 	incomplete := len(keys)
-	log.WithField("incomplete", incomplete).Info("found incomplete requests")
+	logger.Info("found incomplete requests", zap.Int("incomplete", incomplete))
 	for _, v := range keys {
-		log.WithField("id", v).Debug("request found to be incomplete")
+		logger.Debug("request found to be incomplete",
+			zap.Any("id", v))
 	}
 	if err != nil {
-		log.WithError(err).Error("unable to query datastore")
+		logger.Error("unable to query datastore",
+			zap.Error(err))
 		return nil, err
 	}
 	return pfr, nil

@@ -1,21 +1,8 @@
 package config
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
-
-func ConfigureLogging() {
-	logLevel := viper.GetString("LOG_LEVEL")
-	level, err := log.ParseLevel(logLevel)
-	if err != nil {
-		log.WithError(err).WithField("logLevel", logLevel).Error("invalid log level")
-		// default to debug
-		level = log.DebugLevel
-	}
-	log.SetLevel(level)
-	log.WithField("level", logLevel).Debug("log level set")
-}
 
 func SetDefaults() {
 	viper.SetDefault("LOG_LEVEL", "debug")

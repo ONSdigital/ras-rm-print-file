@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	logger "github.com/ONSdigital/ras-rm-print-file/logging"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 type GCSDownload struct {
@@ -23,13 +24,14 @@ type GCSDownload struct {
 func (d *GCSDownload) Init() error {
 	var err error
 	d.ctx = context.Background()
-	log.Info("initialising GCS connection")
+	logger.Info("initialising GCS connection")
 	d.client, err = storage.NewClient(d.ctx)
 	if err != nil {
-		log.WithError(err).Error("error creating gcp client")
+		logger.Error("error creating gcp client",
+			zap.Error(err))
 		return fmt.Errorf("storage.NewClient: %v", err)
 	}
-	log.Info("connected to GCS")
+	logger.Info("connected to GCS")
 	return nil
 }
 
@@ -37,9 +39,9 @@ func (d *GCSDownload) Close() error {
 	if d.client == nil {
 		return errors.New("please initialise the connection")
 	}
-	log.Info("closing connection to GCS")
+	logger.Info("closing connection to GCS")
 	err := d.client.Close()
-	log.Info("GCS connection closed")
+	logger.Info("GCS connection closed")
 	return err
 }
 
@@ -51,7 +53,9 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 	bucket := viper.GetString("BUCKET_NAME")
 	path := bucketPath(filename)
 
-	log.WithField("filename", path).WithField("bucket", bucket).Info("downloading from bucket")
+	logger.Info("downloading from bucket",
+		zap.String("filename", path),
+		zap.String("bucket", bucket))
 
 	ctx, cancel := context.WithTimeout(d.ctx, time.Second*50)
 	defer cancel()
@@ -59,24 +63,31 @@ func (d *GCSDownload) DownloadFile(filename string) (*pkg.PrintFile, error) {
 	// GCSUpload an object with storage.Writer.
 	rc, err := d.client.Bucket(bucket).Object(path).NewReader(ctx)
 	if err != nil {
-		log.WithError(err).Error("error reading from bucket " + bucket + path)
+		logger.Error("error reading from bucket "+bucket+path,
+			zap.Error(err))
 		return nil, err
 	}
-	log.WithField("filename", path).WithField("bucket", bucket).Info("about to read contents from bucket")
+	logger.Info("about to read contents from bucket",
+		zap.String("filename", path),
+		zap.String("bucket", bucket))
 
 	buf := &bytes.Buffer{}
 	defer rc.Close()
 	if _, err := io.Copy(buf, rc); err != nil {
-		log.WithError(err).Error("error reading bytes from bucket")
+		logger.Error("error reading bytes from bucket",
+			zap.Error(err))
 		return nil, err
 	}
 
-	log.WithField("filename", path).WithField("bucket", bucket).Info("upload to bucket complete")
+	logger.Info("upload to bucket complete",
+		zap.String("filename", path),
+		zap.String("bucket", bucket))
 
 	var printFileEntries []*pkg.PrintFileEntry
 	err = json.Unmarshal(buf.Bytes(), &printFileEntries)
 	if err != nil {
-		log.WithError(err).Error("unable to marshall json payload - nacking message")
+		logger.Error("unable to marshall json payload - nacking message",
+			zap.Error(err))
 		return nil, err
 	}
 	printFile := pkg.PrintFile{

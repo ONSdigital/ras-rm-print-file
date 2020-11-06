@@ -2,11 +2,13 @@ package sftp
 
 import (
 	"errors"
-	"github.com/pkg/sftp"
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	"golang.org/x/crypto/ssh"
 	"os"
+
+	logger "github.com/ONSdigital/ras-rm-print-file/logging"
+	"github.com/pkg/sftp"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"golang.org/x/crypto/ssh"
 )
 
 type SFTPUpload struct {
@@ -17,7 +19,7 @@ func (s *SFTPUpload) Init() error {
 	var err error
 	addr := createSFTPAddress()
 	config := &ssh.ClientConfig{
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //TODO remove this and check the key
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // TODO remove this and check the key
 		User:            viper.GetString("SFTP_USERNAME"),
 		Auth: []ssh.AuthMethod{
 			ssh.Password(viper.GetString("SFTP_PASSWORD")),
@@ -25,85 +27,98 @@ func (s *SFTPUpload) Init() error {
 	}
 	s.conn, err = ssh.Dial("tcp", addr, config)
 	if err != nil {
-		log.WithError(err).Error("unable to initialise the SFTP connection")
+		logger.Error("unable to initialise the SFTP connection",
+			zap.Error(err))
 		return err
 	}
-	log.Info("connected to SFTP server")
+	logger.Info("connected to SFTP server")
 	return nil
 }
 
 func createSFTPAddress() string {
 	host := viper.GetString("SFTP_HOST")
 	port := viper.GetString("SFTP_PORT")
-	log.WithField("host", host).WithField("port", port).Info("initialising sftp connection")
+	logger.Info("initialising sftp connection",
+		zap.String("host", host),
+		zap.String("port", port))
 
 	addr := host + ":" + port
 	return addr
 }
 
 func (s *SFTPUpload) Close() error {
-	log.Info("closing connection to SFTP")
+	logger.Info("closing connection to SFTP")
 	if s.conn == nil {
 		return errors.New("please initialise connection")
 	}
 	err := s.conn.Close()
-	log.Info("sftp connection closed")
+	logger.Info("sftp connection closed")
 	return err
 }
 
 func (s *SFTPUpload) UploadFile(filename string, contents []byte) error {
-	log.WithField("filename", filename).Info("uploading to SFTP server")
+	logger.Info("uploading to SFTP server",
+		zap.String("filename", filename))
 	if s.conn == nil {
 		return errors.New("please initialise connection")
 	}
 	// open an SFTP session over an existing ssh connection.
 	client, err := sftp.NewClient(s.conn)
 	if err != nil {
-		log.Error(err)
+		logger.Error("unable to create new SFTP connection",
+			zap.Error(err))
 		return err
 	}
 	defer client.Close()
 
 	workingDir, err := client.Getwd()
 	if err != nil {
-		log.Error("unable to get current working directory")
+		logger.Error("unable to get current working directory",
+			zap.Error(err))
 	}
 
-	log.WithField("workingDir", workingDir).Info("working dir")
+	logger.Info("working dir",
+		zap.String("workingDir", workingDir))
 	path := filepath(workingDir, filename)
 
-	log.Info("creating file")
+	logger.Info("creating file")
 
-	//check the file is there
+	// check the file is there
 	fi, err := client.Lstat(path)
 	if err != nil {
-		log.WithField("filepath", path).Info("file does not exist, creating")
-	} else {
-		if fi.Size() != 0 {
-			log.WithField("filepath", path).Info("file already exists and is not empty")
-			return nil
-		}
+		logger.Info("file does not exist, creating",
+			zap.String("filepath", path))
+	} else if fi.Size() != 0 {
+		logger.Info("file already exists and is not empty",
+			zap.String("filepath", path))
+		return nil
 	}
 
 	f, err := client.Create(path)
 	if err != nil {
-		log.WithError(err).WithField("filepath", path).Error("unable to create file")
+		logger.Info("unable to create file",
+			zap.String("filepath", path))
 		return err
 	}
-	log.Info("writing contents")
+	logger.Info("writing contents")
 	if _, err := f.Write(contents); err != nil {
-		log.WithError(err).WithField("filepath", path).Error("unable to write file contents")
+		logger.Error("unable to write file contents",
+			zap.String("filepath", path),
+			zap.Error(err))
 		return err
 	}
 	f.Close()
 
 	// check it's there
-	log.Info("confirming file exists")
+	logger.Info("confirming file exists")
 	fi, err = client.Lstat(path)
 	if err != nil {
-		log.WithError(err).WithField("filepath", path).Warn("unable to confirm file exists")
+		logger.Warn("unable to confirm file exists",
+			zap.String("filepath", path),
+			zap.Error(err))
 	}
-	log.WithField("file", fi.Name()).Info("upload complete")
+	logger.Info("upload complete",
+		zap.String("file", fi.Name()))
 	return nil
 }
 

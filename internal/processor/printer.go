@@ -2,22 +2,24 @@ package processor
 
 import (
 	"bytes"
-	"github.com/ONSdigital/ras-rm-print-file/internal/database"
-	"github.com/ONSdigital/ras-rm-print-file/internal/gcs"
-	"github.com/ONSdigital/ras-rm-print-file/internal/sftp"
-	"github.com/ONSdigital/ras-rm-print-file/pkg"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"strings"
 	"text/template"
+
+	"github.com/ONSdigital/ras-rm-print-file/internal/database"
+	"github.com/ONSdigital/ras-rm-print-file/internal/gcs"
+	"github.com/ONSdigital/ras-rm-print-file/internal/sftp"
+	logger "github.com/ONSdigital/ras-rm-print-file/logging"
+	"github.com/ONSdigital/ras-rm-print-file/pkg"
+	"go.uber.org/zap"
 )
 
 var printTemplate = "printfile.tmpl"
 
 type SDCPrinter struct {
-	store      pkg.Store
-	gcsUpload  pkg.Upload
-	sftpUpload pkg.Upload
+	store       pkg.Store
+	gcsUpload   pkg.Upload
+	sftpUpload  pkg.Upload
 	gcsDownload pkg.Download
 }
 
@@ -31,29 +33,34 @@ func Create() *SDCPrinter {
 }
 
 func (p *SDCPrinter) Process(filename string, datafileName string) error {
-	log.WithField("filename", filename).Info("processing print file")
+	logger.Info("processing print file",
+		zap.String("filename", filename))
 
 	// first save the request to the DB
 	err := p.store.Init()
 	if err != nil {
-		log.WithError(err).Error("unable to initialise storage")
+		logger.Error("unable to initialise storage",
+			zap.Error(err))
 		return err
 	}
 	printFileRequest, err := p.store.Add(filename, datafileName)
 	if err != nil {
-		log.WithError(err).Error("unable to store print file request ")
+		logger.Error("unable to store print file request ",
+			zap.Error(err))
 		return err
 	}
 	// load the data file
 	err = p.gcsDownload.Init()
 	if err != nil {
-		log.WithError(err).Error("unable to initialise storage")
+		logger.Error("unable to initialise storage",
+			zap.Error(err))
 		return err
 	}
 
 	pf, err := p.gcsDownload.DownloadFile(datafileName)
 	if err != nil {
-		log.WithError(err).WithField("dataFile", datafileName).Error("unable to load data file")
+		logger.Error("unable to load data file",
+			zap.String("dataFile", datafileName))
 		return err
 	}
 
@@ -66,7 +73,9 @@ func (p *SDCPrinter) Process(filename string, datafileName string) error {
 		return err
 	}
 	printFileRequest.Status.Templated = true
-	log.WithField("ApplyTemplate", printTemplate).WithField("filename", filename).Info("templating complete")
+	logger.Info("templating complete",
+		zap.String("ApplyTemplate", printTemplate),
+		zap.String("filename", filename))
 
 	// first upload to GCS
 	printFileRequest.Status.UploadedGCS = upload(filename, buf, p.gcsUpload, "gcs")
@@ -74,12 +83,13 @@ func (p *SDCPrinter) Process(filename string, datafileName string) error {
 	// and then to SFTP
 	printFileRequest.Status.UploadedSFTP = upload(filename, buf, p.sftpUpload, "sftp")
 
-	//check if it's completed
+	// check if it's completed
 	printFileRequest.Status.Completed = isComplete(printFileRequest)
 
 	err = p.store.Update(printFileRequest)
 	if err != nil {
-		log.WithError(err).Error("failed to Update database")
+		logger.Error("failed to Update database",
+			zap.Error(err))
 		return err
 	}
 	return nil
@@ -87,23 +97,25 @@ func (p *SDCPrinter) Process(filename string, datafileName string) error {
 
 func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 	filename := pfr.PrintFilename
-	log.WithField("filename", filename).Info("processing print file")
+	logger.Info("processing print file",
+		zap.String("filename", filename))
 
-
-	//increment the number of attempts
+	// increment the number of attempts
 	numberOfAttempts := pfr.Attempts
 	pfr.Attempts = numberOfAttempts + 1
 
 	// load the data file
 	err := p.gcsDownload.Init()
 	if err != nil {
-		log.WithError(err).Error("unable to initialise storage")
+		logger.Error("unable to initialise storage",
+			zap.Error(err))
 		return err
 	}
 
 	printFile, err := p.gcsDownload.DownloadFile(pfr.DataFilename)
 	if err != nil {
-		log.WithError(err).WithField("dataFile", pfr.DataFilename).Error("unable to load data file")
+		logger.Error("unable to load data file",
+			zap.String("dataFile", pfr.DataFilename))
 		return err
 	}
 
@@ -113,31 +125,35 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 		return err
 	}
 	pfr.Status.Templated = true
-	log.WithField("ApplyTemplate", printTemplate).WithField("filename", filename).Info("templating complete")
+	logger.Info("templating complete",
+		zap.String("ApplyTemplate", printTemplate),
+		zap.String("filename", filename))
 
 	// first upload to GCS
 	if !pfr.Status.UploadedGCS {
-		log.Info("print request not uploaded to GCS retrying")
+		logger.Info("print request not uploaded to GCS retrying")
 		pfr.Status.UploadedGCS = upload(filename, buf, p.gcsUpload, "gcs")
 	}
 	// and then to SFTP
 	if !pfr.Status.UploadedSFTP {
-		log.Info("print request not uploaded to SFTP retrying")
+		logger.Info("print request not uploaded to SFTP retrying")
 		pfr.Status.UploadedSFTP = upload(filename, buf, p.sftpUpload, "sftp")
 	}
 
-	//check if it's completed
+	// check if it's completed
 	pfr.Status.Completed = isComplete(pfr)
 
 	// first save the request to the DB
 	err = p.store.Init()
 	if err != nil {
-		log.WithError(err).Error("unable to initialise storage")
+		logger.Error("unable to initialise storage",
+			zap.Error(err))
 		return err
 	}
 	err = p.store.Update(pfr)
 	if err != nil {
-		log.WithError(err).Error("failed to Update database")
+		logger.Error("failed to Update database",
+			zap.Error(err))
 		return err
 	}
 	return nil
@@ -148,23 +164,28 @@ func isComplete(printFileRequest *pkg.PrintFileRequest) bool {
 }
 
 func upload(filename string, buffer *bytes.Buffer, uploader pkg.Upload, name string) bool {
-	log.WithField("filename", filename).Infof("uploading file to %v", name)
+	logger.Info("uploading file to ",
+		zap.String("filename", filename))
 	err := uploader.Init()
 	if err != nil {
-		log.WithError(err).Errorf("failed to initialise %v upload", name)
+		logger.Error("failed to initialise upload to ",
+			zap.String("name", name),
+			zap.Error(err))
 		return false
 	}
 	defer uploader.Close()
 	err = uploader.UploadFile(filename, buffer.Bytes())
 	if err != nil {
-		log.WithError(err).Errorf("failed to upload to %v", name)
+		logger.Error("failed to upload to ",
+			zap.String("name", name),
+			zap.Error(err))
 		return false
 	}
 	return true
 }
 
 func sanitise(pf *pkg.PrintFile) {
-	log.Info("sanitising print file to match expected outcomes")
+	logger.Info("sanitising print file to match expected outcomes")
 	for _, pfe := range pf.PrintFiles {
 		pfe.SampleUnitRef = strings.TrimSpace(pfe.SampleUnitRef)
 		pfe.Iac = nullIfEmpty(strings.TrimSpace(pfe.Iac))
@@ -186,30 +207,36 @@ func nullIfEmpty(value string) string {
 }
 
 func applyTemplate(pf *pkg.PrintFile) (*bytes.Buffer, error) {
-	//find the template
+	// find the template
 	wd, err := os.Getwd()
 	if err != nil {
-		log.WithError(err).Error("unable to load template")
+		logger.Error("unable to load template",
+			zap.Error(err))
 	}
 	// Template location
 	templateLocation := wd + "/templates/" + printTemplate
 
 	// load the ApplyTemplate
-	log.WithField("ApplyTemplate", printTemplate).Info("about to load ApplyTemplate")
+	logger.Info("about to load ApplyTemplate",
+		zap.String("ApplyTemplate", printTemplate))
 	t, err := template.New(printTemplate).ParseFiles(templateLocation)
 	if err != nil {
-		log.WithError(err).Error("failed to find ApplyTemplate")
+		logger.Error("failed to find ApplyTemplate",
+			zap.Error(err))
 		return nil, err
 	}
 
-	log.WithField("ApplyTemplate", printTemplate).Info("about to process ApplyTemplate")
+	logger.Info("about to process ApplyTemplate",
+		zap.String("ApplyTemplate", printTemplate))
 	// create a bytes buffer and run the ApplyTemplate engine
 	buf := &bytes.Buffer{}
 	err = t.Execute(buf, pf)
 	if err != nil {
-		log.WithError(err).Error("failed to process ApplyTemplate")
+		logger.Error("failed to process ApplyTemplate",
+			zap.Error(err))
 		return nil, err
 	}
-	log.WithField("ApplyTemplate", printTemplate).Info("templating complete")
+	logger.Info("templating complete",
+		zap.String("ApplyTemplate", printTemplate))
 	return buf, nil
 }
