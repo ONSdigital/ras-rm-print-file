@@ -38,6 +38,7 @@ func (p *SDCPrinter) Process(filename string, datafileName string) error {
 
 	// first save the request to the DB
 	err := p.store.Init()
+	defer p.store.Close()
 	if err != nil {
 		logger.Error("unable to initialise storage",
 			zap.Error(err))
@@ -51,6 +52,7 @@ func (p *SDCPrinter) Process(filename string, datafileName string) error {
 	}
 	// load the data file
 	err = p.gcsDownload.Init()
+	defer p.gcsDownload.Close()
 	if err != nil {
 		logger.Error("unable to initialise storage",
 			zap.Error(err))
@@ -106,6 +108,7 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 
 	// load the data file
 	err := p.gcsDownload.Init()
+	defer p.gcsDownload.Close()
 	if err != nil {
 		logger.Error("unable to initialise storage",
 			zap.Error(err))

@@ -33,6 +33,17 @@ func (s *DataStore) Init() error {
 
 }
 
+func (s *DataStore) Close() error {
+	if s.client == nil {
+		return errors.New("please initialise the connection")
+	}
+	logger.Info("closing connection to GCS")
+	err := s.client.Close()
+	logger.Info("GCS connection closed")
+	return err
+}
+
+
 func (s *DataStore) Add(printFilename string, dataFilename string) (*pkg.PrintFileRequest, error) {
 	if s.client == nil {
 		return nil, errors.New("please initialise the connection")

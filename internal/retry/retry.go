@@ -36,6 +36,7 @@ func (b BackoffRetry) Start() {
 
 func (b BackoffRetry) process() {
 	err := b.store.Init()
+	defer b.store.Close()
 	if err != nil {
 		logger.Error("unable to initialise storage",
 			zap.Error(err))
@@ -57,7 +58,6 @@ func (b BackoffRetry) process() {
 
 	for _, printRequest := range printRequests {
 		logger.Info("reprocessing print request")
-
 		b.printer.ReProcess(printRequest)
 	}
 }
