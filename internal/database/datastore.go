@@ -37,7 +37,7 @@ func (s *DataStore) Close() error {
 	if s.client == nil {
 		return errors.New("please initialise the connection")
 	}
-	logger.Info("closing connection to GCS")
+	logger.Info("closing connection to datastore")
 	err := s.client.Close()
 	logger.Info("GCS connection closed")
 	return err
