@@ -26,6 +26,7 @@ func TestProcess(t *testing.T) {
 	store := new(mocks.Store)
 	store.On("Init").Return(nil)
 	store.On("FindIncomplete", mock.Anything, mock.Anything).Return(printFileRequests, nil)
+	store.On("Close").Return(nil)
 
 	printer := new(mocks.Printer)
 	printer.On("ReProcess", printFileRequest).Return(nil)
@@ -61,6 +62,7 @@ func TestReProcessWhenCompleteDoesNotRun(t *testing.T) {
 	store := new(mocks.Store)
 	store.On("Init").Return(nil)
 	store.On("FindIncomplete", mock.Anything, mock.Anything).Return(printFileRequests, nil)
+	store.On("Close").Return(nil)
 
 	printer := new(mocks.Printer)
 	printer.On("ReProcess", printFileRequest).Return(nil)

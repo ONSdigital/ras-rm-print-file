@@ -32,6 +32,12 @@ func TestFindIncomplete(t *testing.T) {
 	assert.Nil(pfr)
 }
 
+func TestCloseErrorsWithNoConnection(t *testing.T) {
+	ds := DataStore{}
+	err := ds.Close()
+	assert.NotNil(t, err)
+}
+
 func TestCreatePrintFileRequest(t *testing.T) {
 	assert := assert.New(t)
 	printfile := "test.csv"

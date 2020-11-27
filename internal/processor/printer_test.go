@@ -22,6 +22,7 @@ func TestProcess(t *testing.T) {
 	store.On("Init").Return(nil)
 	store.On("Add", mock.Anything, mock.Anything).Return(&pkg.PrintFileRequest{}, nil)
 	store.On("Update", mock.Anything).Return(nil)
+	store.On("Close").Return(nil)
 
 	gcsUpload := new(mocks.Upload)
 	gcsUpload.On("Init").Return(nil)
