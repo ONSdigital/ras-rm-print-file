@@ -1,8 +1,4 @@
 env: sandbox
-replicas: 1
-rollingUpdate:
-  maxSurge: 1
-  maxUnavailable: 1
 
 image:
   devRepo: eu.gcr.io/ons-rasrmbs-management
@@ -10,14 +6,28 @@ image:
   tag: latest
   pullPolicy: Always
 
-resources:
-  requests:
-    memory: "32Mi"
-
 container:
   port: 8080
 service:
   port: 8080
+
+resources:
+  requests:
+    memory: "50Mi"
+    cpu: "10m"
+  limits:
+    cpu: "50m"
+    memory: "200Mi"
+
+autoscaling: false
+scaleAt:
+  # These are expressed as a percentage of resources.requests, not resources.limits
+  memoryPercentage: 200
+  cpuPercentage: 250
+replicas: 1
+rollingUpdate:
+  maxSurge: 1
+  maxUnavailable: 1
 
 log:
   level: debug
