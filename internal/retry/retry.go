@@ -2,6 +2,7 @@ package retry
 
 import (
 	"github.com/ONSdigital/ras-rm-print-file/internal/database"
+	"strconv"
 	"time"
 
 	"github.com/ONSdigital/ras-rm-print-file/internal/processor"
@@ -17,9 +18,16 @@ type BackoffRetry struct {
 }
 
 func (b BackoffRetry) Start() {
-	configDelay := viper.GetInt64("RETRY_DELAY")
+	retryDelay := viper.GetString("RETRY_DELAY")
 	logger.Debug("retrieving delay setting from config",
-		zap.Int64("delay", configDelay))
+		zap.String("retryDelay", retryDelay))
+	configDelay, err := strconv.Atoi(retryDelay)
+	if err != nil {
+		logger.Error("unable to convert retry delay to int, defaulting to an hour",
+			zap.String("retryDelay", retryDelay))
+		// defaulting to an hour
+		configDelay = 3600000
+	}
 
 	delay := time.Duration(configDelay) * time.Millisecond
 	for {
