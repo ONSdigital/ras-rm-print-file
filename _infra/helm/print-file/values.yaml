@@ -39,7 +39,7 @@ sftp:
     enabled: true
 
 retry:
-  delay: 60000
+  delay: 3600000
 
 gcp:
   project: ras-rm-sandbox
