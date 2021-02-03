@@ -1,9 +1,9 @@
 package retry
 
 import (
+	"github.com/ONSdigital/ras-rm-print-file/internal/database"
 	"time"
 
-	"github.com/ONSdigital/ras-rm-print-file/internal/database"
 	"github.com/ONSdigital/ras-rm-print-file/internal/processor"
 	logger "github.com/ONSdigital/ras-rm-print-file/logging"
 	"github.com/ONSdigital/ras-rm-print-file/pkg"
@@ -22,10 +22,10 @@ func (b BackoffRetry) Start() {
 		zap.Int64("delay", configDelay))
 
 	delay := time.Duration(configDelay) * time.Millisecond
-	b.printer = processor.Create()
-	b.store = &database.DataStore{}
 	for {
+		b.printer = processor.Create()
 		logger.Info("about to run retry service")
+		b.store = &database.DataStore{}
 		b.process()
 		logger.Info("retry sleeping",
 			zap.String("delay", delay.String()))
