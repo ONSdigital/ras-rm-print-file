@@ -23,8 +23,9 @@ func (b BackoffRetry) Start() {
 
 	delay := time.Duration(configDelay) * time.Millisecond
 	for {
-		b.printer = processor.Create()
 		logger.Info("about to run retry service")
+		b.printer = processor.Create()
+		logger.Info("creating datastore connection")
 		b.store = &database.DataStore{}
 		b.process()
 		logger.Info("retry sleeping",
