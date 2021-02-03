@@ -108,12 +108,12 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 
 	// load the data file
 	err := p.gcsDownload.Init()
-	defer p.gcsDownload.Close()
 	if err != nil {
 		logger.Error("unable to initialise storage",
 			zap.Error(err))
 		return err
 	}
+	defer p.gcsDownload.Close()
 
 	printFile, err := p.gcsDownload.DownloadFile(pfr.DataFilename)
 	if err != nil {
@@ -153,6 +153,7 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 			zap.Error(err))
 		return err
 	}
+	defer p.store.Close()
 	err = p.store.Update(pfr)
 	if err != nil {
 		logger.Error("failed to Update database",
