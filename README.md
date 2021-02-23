@@ -12,4 +12,4 @@ An example of the JSON payload expected by this service can be found [here](exam
 An example of the print file output can be found [here](example.csv)
 
 ## Service Design
-Please refer to the [design](https://github.com/ONSdigital/ras-rm-documentation/tree/master/service-design/ras-rm-print-file)
+Please refer to the [design](https://github.com/ONSdigital/ras-rm-documentation/tree/main/service-design/ras-rm-print-file)
