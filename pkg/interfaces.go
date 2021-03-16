@@ -5,7 +5,9 @@ type Store interface {
 	Close() error
 	Add(printFilename string, dataFilename string) (*PrintFileRequest, error)
 	Update(pfr *PrintFileRequest) error
+	Delete(pfr *PrintFileRequest) error
 	FindIncomplete() ([]*PrintFileRequest, error)
+	FindComplete() ([]*PrintFileRequest, error)
 }
 
 type Download interface {

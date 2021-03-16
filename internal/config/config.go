@@ -15,6 +15,8 @@ func SetDefaults() {
 	viper.SetDefault("SFTP_PASSWORD", "sftp")
 	viper.SetDefault("SFTP_DIRECTORY", "printfiles")
 	viper.SetDefault("RETRY_DELAY", "3600000")
+	viper.SetDefault("CLEANUP_DELAY", "24")
+	viper.SetDefault("CLEANUP_RETENTION", "720")
 	viper.SetDefault("PUBSUB_SUB_ID", "print-file-workers")
 	viper.SetDefault("PUB_SUB_TOPIC", "print-file-jobs")
 }

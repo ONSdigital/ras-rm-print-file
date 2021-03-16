@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/ONSdigital/ras-rm-print-file/internal/database"
 	"net/http"
 
 	"github.com/ONSdigital/ras-rm-print-file/internal/config"
@@ -26,6 +27,13 @@ func startRetryService() {
 	logger.Info("started retry service")
 }
 
+func startCleanUpService() {
+	logger.Info("starting clean up service")
+	cu := database.CleanUp{}
+	cu.Start()
+	logger.Info("started clean up service")
+}
+
 func startPubSubListener() {
 	logger.Info("starting gcpubsub listener")
 	s := gcpubsub.Subscriber{
@@ -48,6 +56,7 @@ func main() {
 
 	go startRetryService()
 	go startPubSubListener()
+	go startCleanUpService()
 
 	logger.Info("started")
 	if err := http.ListenAndServe(":8080", nil); err != nil {

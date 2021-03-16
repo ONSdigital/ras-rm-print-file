@@ -49,6 +49,43 @@ func (_m *Store) Close() error {
 	return r0
 }
 
+// Delete provides a mock function with given fields: pfr
+func (_m *Store) Delete(pfr *pkg.PrintFileRequest) error {
+	ret := _m.Called(pfr)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*pkg.PrintFileRequest) error); ok {
+		r0 = rf(pfr)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// FindComplete provides a mock function with given fields:
+func (_m *Store) FindComplete() ([]*pkg.PrintFileRequest, error) {
+	ret := _m.Called()
+
+	var r0 []*pkg.PrintFileRequest
+	if rf, ok := ret.Get(0).(func() []*pkg.PrintFileRequest); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*pkg.PrintFileRequest)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // FindIncomplete provides a mock function with given fields:
 func (_m *Store) FindIncomplete() ([]*pkg.PrintFileRequest, error) {
 	ret := _m.Called()

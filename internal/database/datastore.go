@@ -113,25 +113,62 @@ func (s *DataStore) Update(pfr *pkg.PrintFileRequest) error {
 	return nil
 }
 
+func (s *DataStore) Delete(pfr *pkg.PrintFileRequest) error {
+	if s.client == nil {
+		return errors.New("please initialise the connection")
+	}
+	pfr.Updated = time.Now()
+	key := datastore.NameKey("PrintFileRequest", pfr.PrintFilename, nil)
+	tx, err := s.client.NewTransaction(s.ctx)
+	if err != nil {
+		logger.Error("unable to start transaction",
+			zap.Error(err))
+		return err
+	}
+	if err := tx.Delete(key); err != nil {
+		logger.Error("unable to delete entity",
+			zap.Error(err))
+		return err
+	}
+	if _, err := tx.Commit(); err != nil {
+		logger.Error("unable to commit entity to database",
+			zap.Error(err))
+		return err
+	}
+	return nil
+}
+
 func (s *DataStore) FindIncomplete() ([]*pkg.PrintFileRequest, error) {
+	logger.Debug("finding all incomplete print file requests")
+	return s.find(false)
+}
+
+func (s *DataStore) find(complete bool) ([]*pkg.PrintFileRequest, error) {
 	if s.client == nil {
 		return nil, errors.New("please initialise the connection")
 	}
 	logger.Debug("about to execute query on datastore")
 	var pfr []*pkg.PrintFileRequest
 
-	query := datastore.NewQuery("PrintFileRequest").Filter("Status.Completed =", false)
+	query := datastore.NewQuery("PrintFileRequest").Filter("Status.Completed =", complete)
 	keys, err := s.client.GetAll(s.ctx, query, &pfr)
-	incomplete := len(keys)
-	logger.Info("found incomplete requests", zap.Int("incomplete", incomplete))
-	for _, v := range keys {
-		logger.Debug("request found to be incomplete",
-			zap.Any("id", v))
-	}
 	if err != nil {
 		logger.Error("unable to query datastore",
 			zap.Error(err))
 		return nil, err
 	}
+	results := len(keys)
+	logger.Info("found  requests", zap.Bool("complete", complete), zap.Int("results", results))
+	for _, v := range keys {
+		logger.Debug("print file request found",
+			zap.Bool("complete", complete),
+			zap.Any("id", v))
+	}
 	return pfr, nil
 }
+
+func (s *DataStore) FindComplete() ([]*pkg.PrintFileRequest, error) {
+	logger.Debug("finding all complete print file requests")
+	return s.find(true)
+}
+
