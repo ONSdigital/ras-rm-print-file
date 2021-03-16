@@ -60,6 +60,7 @@ func (c CleanUp) process() {
 			retentionDuration := time.Duration(retention) * time.Hour
 			if duration >= retentionDuration {
 				logger.Info("deleting print file request as its older than retention period",
+					zap.String("printFileName", printRequest.PrintFilename),
 					zap.Duration("retention", retentionDuration),
 					zap.Duration("duration ", duration))
 				c.store.Delete(printRequest)
