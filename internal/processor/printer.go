@@ -3,6 +3,7 @@ package processor
 import (
 	"bytes"
 	"os"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -46,7 +47,7 @@ func (p *SDCPrinter) Process(filename string, datafileName string) error {
 	}
 	printFileRequest, err := p.store.Add(filename, datafileName)
 	if err != nil {
-		logger.Error("unable to store print file request ",
+		logger.Error("unable to store print file request",
 			zap.Error(err))
 		return err
 	}
@@ -105,6 +106,11 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 	// increment the number of attempts
 	numberOfAttempts := pfr.Attempts
 	pfr.Attempts = numberOfAttempts + 1
+	// log an error for every 3 retries
+	if pfr.Attempts % 3 == 0 {
+		strAttempts := strconv.Itoa(pfr.Attempts)
+		logger.Error("Retried connection " + strAttempts +" times")
+	}
 
 	// load the data file
 	err := p.gcsDownload.Init()
@@ -168,11 +174,11 @@ func isComplete(printFileRequest *pkg.PrintFileRequest) bool {
 }
 
 func upload(filename string, buffer *bytes.Buffer, uploader pkg.Upload, name string) bool {
-	logger.Info("uploading file to ",
+	logger.Info("uploading file",
 		zap.String("filename", filename))
 	err := uploader.Init()
 	if err != nil {
-		logger.Error("failed to initialise upload to ",
+		logger.Error("failed to initialise upload",
 			zap.String("name", name),
 			zap.Error(err))
 		return false
@@ -180,7 +186,7 @@ func upload(filename string, buffer *bytes.Buffer, uploader pkg.Upload, name str
 	defer uploader.Close()
 	err = uploader.UploadFile(filename, buffer.Bytes())
 	if err != nil {
-		logger.Error("failed to upload to ",
+		logger.Error("failed to upload",
 			zap.String("name", name),
 			zap.Error(err))
 		return false

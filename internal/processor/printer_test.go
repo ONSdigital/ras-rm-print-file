@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
+	"time"
 )
 
 func TestProcess(t *testing.T) {
@@ -133,4 +134,27 @@ func TestApplyTemplateEmptyPrintFile(t *testing.T) {
 	buffer, err := applyTemplate(printFile)
 	assert.Nil(err)
 	assert.Equal("", buffer.String())
+}
+
+func TestExcessiveRetries(t *testing.T) {
+	assert := assert.New(t)
+	printFileRequest := &pkg.PrintFileRequest{
+		DataFilename: "test.json",
+		PrintFilename:  "test.csv",
+		Created:   time.Now(),
+		Status: pkg.Status{
+			Templated:    true,
+			UploadedGCS:  true,
+			UploadedSFTP: true,
+		},
+	}
+	printFileRequest.Attempts = 3
+	assert.Equal(printFileRequest.Attempts, 3)
+
+	printer := new(mocks.Printer)
+	printer.On("ReProcess", printFileRequest).Return(nil)
+	printer.ReProcess(printFileRequest)
+
+	printer.AssertExpectations(t)
+	printer.AssertCalled(t, "ReProcess", printFileRequest)
 }
