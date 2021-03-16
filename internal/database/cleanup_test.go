@@ -15,15 +15,15 @@ func TestCleanup(t *testing.T) {
 	createdUpdatedTime := time.Now().AddDate(0, 0, -31)
 
 	printFileRequest := &pkg.PrintFileRequest{
-		DataFilename: "test.json",
-		PrintFilename:  "test.csv",
-		Created:   createdUpdatedTime,
-		Updated: createdUpdatedTime,
+		DataFilename:  "test.json",
+		PrintFilename: "test.csv",
+		Created:       createdUpdatedTime,
+		Updated:       createdUpdatedTime,
 		Status: pkg.Status{
 			Templated:    true,
 			UploadedGCS:  true,
 			UploadedSFTP: true,
-			Completed: true,
+			Completed:    true,
 		},
 	}
 
@@ -35,8 +35,8 @@ func TestCleanup(t *testing.T) {
 	store.On("Close").Return(nil)
 	store.On("Delete", printFileRequest).Return(nil)
 
-	cleanUp := CleanUp {
-		store:   store,
+	cleanUp := CleanUp{
+		store: store,
 	}
 	cleanUp.process()
 
@@ -50,15 +50,15 @@ func TestCleanUpDoesNotRunWhenDurationLessThan30days(t *testing.T) {
 	config.SetDefaults()
 
 	printFileRequest := &pkg.PrintFileRequest{
-		DataFilename: "test.json",
-		PrintFilename:  "test.csv",
-		Created:   time.Now(),
-		Updated: time.Now(),
+		DataFilename:  "test.json",
+		PrintFilename: "test.csv",
+		Created:       time.Now(),
+		Updated:       time.Now(),
 		Status: pkg.Status{
 			Templated:    true,
 			UploadedGCS:  true,
 			UploadedSFTP: true,
-			Completed: true,
+			Completed:    true,
 		},
 	}
 
@@ -69,8 +69,8 @@ func TestCleanUpDoesNotRunWhenDurationLessThan30days(t *testing.T) {
 	store.On("FindComplete", mock.Anything, mock.Anything).Return(printFileRequests, nil)
 	store.On("Close").Return(nil)
 
-	cleanUp := CleanUp {
-		store:   store,
+	cleanUp := CleanUp{
+		store: store,
 	}
 	cleanUp.process()
 
@@ -80,20 +80,19 @@ func TestCleanUpDoesNotRunWhenDurationLessThan30days(t *testing.T) {
 	store.AssertExpectations(t)
 }
 
-
 func TestCleanUpDoesNotRunWhenNotComplete(t *testing.T) {
 	config.SetDefaults()
 
 	printFileRequest := &pkg.PrintFileRequest{
-		DataFilename: "test.json",
-		PrintFilename:  "test.csv",
-		Created:   time.Now(),
-		Updated: time.Now(),
+		DataFilename:  "test.json",
+		PrintFilename: "test.csv",
+		Created:       time.Now(),
+		Updated:       time.Now(),
 		Status: pkg.Status{
 			Templated:    true,
 			UploadedGCS:  true,
 			UploadedSFTP: false,
-			Completed: false,
+			Completed:    false,
 		},
 	}
 
@@ -104,8 +103,8 @@ func TestCleanUpDoesNotRunWhenNotComplete(t *testing.T) {
 	store.On("FindComplete", mock.Anything, mock.Anything).Return(printFileRequests, nil)
 	store.On("Close").Return(nil)
 
-	cleanUp := CleanUp {
-		store:   store,
+	cleanUp := CleanUp{
+		store: store,
 	}
 	cleanUp.process()
 
@@ -123,8 +122,8 @@ func TestCleanUpDoesNotRunWhenNoResults(t *testing.T) {
 	store.On("FindComplete", mock.Anything, mock.Anything).Return([]*pkg.PrintFileRequest{}, nil)
 	store.On("Close").Return(nil)
 
-	cleanUp := CleanUp {
-		store:   store,
+	cleanUp := CleanUp{
+		store: store,
 	}
 	cleanUp.process()
 

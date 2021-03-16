@@ -43,7 +43,6 @@ func (s *DataStore) Close() error {
 	return err
 }
 
-
 func (s *DataStore) Add(printFilename string, dataFilename string) (*pkg.PrintFileRequest, error) {
 	if s.client == nil {
 		return nil, errors.New("please initialise the connection")
@@ -171,4 +170,3 @@ func (s *DataStore) FindComplete() ([]*pkg.PrintFileRequest, error) {
 	logger.Debug("finding all complete print file requests")
 	return s.find(true)
 }
-

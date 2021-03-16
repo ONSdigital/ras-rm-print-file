@@ -9,7 +9,7 @@ import (
 )
 
 type CleanUp struct {
-	store   pkg.Store
+	store pkg.Store
 }
 
 func (c CleanUp) Start() {
@@ -58,7 +58,7 @@ func (c CleanUp) process() {
 			duration := now.Sub(updated)
 			retention := viper.GetInt64("CLEANUP_RETENTION")
 			retentionDuration := time.Duration(retention) * time.Hour
-			if duration  >= retentionDuration {
+			if duration >= retentionDuration {
 				logger.Info("deleting print file request as its older than retention period",
 					zap.Duration("retention", retentionDuration),
 					zap.Duration("duration ", duration))
