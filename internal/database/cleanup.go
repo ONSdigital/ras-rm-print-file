@@ -21,6 +21,7 @@ func (c CleanUp) Start() {
 	for {
 		logger.Info("about to run clean up service")
 		c.store = &DataStore{}
+		c.process()
 		logger.Info("sleeping clean up service",
 			zap.String("delay", delay.String()))
 		time.Sleep(delay)
