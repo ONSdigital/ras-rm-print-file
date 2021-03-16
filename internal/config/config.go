@@ -6,7 +6,7 @@ import (
 
 func SetDefaults() {
 	viper.SetDefault("LOG_LEVEL", "debug")
-	viper.SetDefault("BUCKET_NAME", "ras-rm-printfile")
+	viper.SetDefault("BUCKET_NAME", "ras-rm-print-file")
 	viper.SetDefault("PREFIX_NAME", "")
 	viper.SetDefault("GOOGLE_CLOUD_PROJECT", "ras-rm-sandbox")
 	viper.SetDefault("SFTP_HOST", "localhost")
