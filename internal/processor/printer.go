@@ -3,7 +3,6 @@ package processor
 import (
 	"bytes"
 	"os"
-	"strconv"
 	"strings"
 	"text/template"
 
@@ -108,9 +107,9 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 	pfr.Attempts = numberOfAttempts + 1
 	// log an error for each retry
 	if pfr.Attempts > 1 {
-		strAttempts := strconv.Itoa(pfr.Attempts)
-		retryFile := pfr.DataFilename
-		logger.Error("Retried connection " + strAttempts +" times for file " + retryFile)
+		logger.Error("Retried connection",
+			zap.Int("attempts", pfr.Attempts),
+			zap.String("file", pfr.PrintFilename))
 	}
 
 	// load the data file
