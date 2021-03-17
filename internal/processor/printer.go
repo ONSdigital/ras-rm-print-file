@@ -106,11 +106,9 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 	numberOfAttempts := pfr.Attempts
 	pfr.Attempts = numberOfAttempts + 1
 	// log an error for each retry
-	if pfr.Attempts > 1 {
-		logger.Error("Retried connection",
-			zap.Int("attempts", pfr.Attempts),
-			zap.String("file", pfr.PrintFilename))
-	}
+	logger.Error("Retried connection",
+		zap.Int("attempts", pfr.Attempts),
+		zap.String("file", pfr.PrintFilename))
 
 	// load the data file
 	err := p.gcsDownload.Init()
