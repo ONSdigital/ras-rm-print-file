@@ -106,10 +106,11 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 	// increment the number of attempts
 	numberOfAttempts := pfr.Attempts
 	pfr.Attempts = numberOfAttempts + 1
-	// log an error for every 3 retries
-	if pfr.Attempts % 3 == 0 {
+	// log an error for each retry
+	if pfr.Attempts > 1 {
 		strAttempts := strconv.Itoa(pfr.Attempts)
-		logger.Error("Retried connection " + strAttempts +" times")
+		retryFile := pfr.DataFilename
+		logger.Error("Retried connection " + strAttempts +" times for file " + retryFile)
 	}
 
 	// load the data file
