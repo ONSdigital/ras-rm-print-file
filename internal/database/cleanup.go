@@ -51,7 +51,6 @@ func (c CleanUp) process() {
 		zap.Int("complete", complete))
 
 	for _, printRequest := range printRequests {
-		logger.Info("reprocessing print request")
 		if printRequest.Status.Completed {
 			now := time.Now()
 			updated := printRequest.Updated
