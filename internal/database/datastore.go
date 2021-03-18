@@ -157,7 +157,7 @@ func (s *DataStore) find(complete bool) ([]*pkg.PrintFileRequest, error) {
 		return nil, err
 	}
 	results := len(keys)
-	logger.Info("found  requests", zap.Bool("complete", complete), zap.Int("results", results))
+	logger.Info("found requests", zap.Bool("complete", complete), zap.Int("results", results))
 	for _, v := range keys {
 		logger.Debug("print file request found",
 			zap.Bool("complete", complete),
