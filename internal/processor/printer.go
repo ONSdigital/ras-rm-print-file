@@ -105,6 +105,7 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 	// increment the number of attempts
 	numberOfAttempts := pfr.Attempts
 	pfr.Attempts = numberOfAttempts + 1
+	fail fail fail
 	// log an error for each retry
 	logger.Error("Retried connection",
 		zap.Int("attempts", pfr.Attempts),
