@@ -23,12 +23,12 @@ type Contact struct {
 }
 
 type PrintFileRequest struct {
-	DataFilename string
-	PrintFilename  string
-	Created   time.Time
-	Updated   time.Time
-	Status    Status
-	Attempts  int
+	DataFilename  string
+	PrintFilename string
+	Created       time.Time
+	Updated       time.Time
+	Status        Status
+	Attempts      int
 }
 
 type Status struct {

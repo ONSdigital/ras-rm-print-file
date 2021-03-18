@@ -41,6 +41,10 @@ sftp:
 retry:
   delay: 3600000
 
+cleanup:
+  delay: 24
+  duration: 720
+
 gcp:
   project: ras-rm-sandbox
   bucket:

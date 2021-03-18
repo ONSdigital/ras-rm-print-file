@@ -17,4 +17,3 @@ func TestDownloadUploadFileErrorsWithNoConnection(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Nil(t, printfile)
 }
-

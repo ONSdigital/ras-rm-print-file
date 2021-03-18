@@ -36,7 +36,7 @@ func TestProcess(t *testing.T) {
 
 	gcsDownload := new(mocks.Download)
 	gcsDownload.On("Init").Return(nil)
-	gcsDownload.On("DownloadFile","test.json").Return(printFile, nil)
+	gcsDownload.On("DownloadFile", "test.json").Return(printFile, nil)
 	gcsDownload.On("Close").Return(nil)
 
 	processor := &SDCPrinter{

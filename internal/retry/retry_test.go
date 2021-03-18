@@ -11,9 +11,9 @@ import (
 func TestProcess(t *testing.T) {
 
 	printFileRequest := &pkg.PrintFileRequest{
-		DataFilename: "test.json",
-		PrintFilename:  "test.csv",
-		Created:   time.Now(),
+		DataFilename:  "test.json",
+		PrintFilename: "test.csv",
+		Created:       time.Now(),
 		Status: pkg.Status{
 			Templated:    true,
 			UploadedGCS:  false,
@@ -47,9 +47,9 @@ func TestProcess(t *testing.T) {
 func TestReProcessWhenCompleteDoesNotRun(t *testing.T) {
 
 	printFileRequest := &pkg.PrintFileRequest{
-		DataFilename: "test.json",
-		PrintFilename:  "test.csv",
-		Created:   time.Now(),
+		DataFilename:  "test.json",
+		PrintFilename: "test.csv",
+		Created:       time.Now(),
 		Status: pkg.Status{
 			Templated:    true,
 			UploadedGCS:  true,

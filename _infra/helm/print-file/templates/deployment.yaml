@@ -85,6 +85,10 @@ spec:
               value: "{{ .Values.sftp.directory }}"
             - name: RETRY_DELAY
               value: "{{ .Values.retry.delay }}"
+            - name: CLEANUP_DELAY
+              value: "{{ .Values.cleanup.delay }}"
+            - name: CLEANUP_RETENTION
+              value: "{{ .Values.cleanup.duration }}"
             - name: PUBSUB_TOPIC
               value: {{ .Values.gcp.topic }}
             - name: PUBSUB_SUB_ID
