@@ -61,6 +61,8 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 			err := deadLetter(ctx, client, msg)
 			if err != nil {
 				msg.Nack()
+			} else {
+				msg.Ack()
 			}
 		}
 	})
