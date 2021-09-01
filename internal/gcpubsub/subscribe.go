@@ -80,7 +80,7 @@ func deadLetter(ctx context.Context, client *pubsub.Client, msg *pubsub.Message)
 	id, err := dlq.Publish(ctx, msg).Get(ctx)
 	if err != nil {
 		logger.Info("unable to forward to dead letter topic",
-			zap.String("msg", string(msg.Data)))
+			zap.String("msg", string(msg.Data)), zap.Error(err))
 		return err
 	}
 	logger.Info("published to dead letter topic", zap.String("id", id))
