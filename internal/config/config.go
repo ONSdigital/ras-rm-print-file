@@ -18,5 +18,5 @@ func SetDefaults() {
 	viper.SetDefault("CLEANUP_DELAY", "24")
 	viper.SetDefault("CLEANUP_RETENTION", "720")
 	viper.SetDefault("PUBSUB_SUB_ID", "print-file-workers")
-	viper.SetDefault("PUB_SUB_TOPIC", "print-file-jobs")
+	viper.SetDefault("PUBSUB_TOPIC", "print-file-jobs")
 }

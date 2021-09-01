@@ -61,6 +61,8 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 			err := deadLetter(ctx, client, msg)
 			if err != nil {
 				msg.Nack()
+			} else {
+				msg.Ack()
 			}
 		}
 	})
@@ -75,12 +77,12 @@ func (s Subscriber) subscribe(ctx context.Context, client *pubsub.Client) {
 // send message to DLQ immediately
 func deadLetter(ctx context.Context, client *pubsub.Client, msg *pubsub.Message) error {
 	// DLQ are always named TOPIC + -dead-letter in our terraform scripts
-	deadLetterTopic := viper.GetString("PUB_SUB_TOPIC") + "-dead-letter"
+	deadLetterTopic := viper.GetString("PUBSUB_TOPIC") + "-dead-letter"
 	dlq := client.Topic(deadLetterTopic)
 	id, err := dlq.Publish(ctx, msg).Get(ctx)
 	if err != nil {
 		logger.Info("unable to forward to dead letter topic",
-			zap.String("msg", string(msg.Data)))
+			zap.String("msg", string(msg.Data)), zap.Error(err))
 		return err
 	}
 	logger.Info("published to dead letter topic", zap.String("id", id))
