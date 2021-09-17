@@ -46,14 +46,8 @@ func TestSubscribe(t *testing.T) {
 	topic, err := createTopic(assert)
 	defer topic.Delete(ctx)
 
-	dlqTopic := createTopicDLQ(err, assert, topic)
-	defer dlqTopic.Delete(ctx)
-
 	sub := createSubscription(err, topic, assert)
 	defer sub.Delete(ctx)
-
-	dlqTopicSub := createDLQSubscription(err, dlqTopic, assert, sub)
-	defer dlqTopicSub.Delete(ctx)
 
 	printFilename := "test.csv"
 
@@ -75,15 +69,10 @@ func TestSubscribe(t *testing.T) {
 	assert.Nil(err)
 
 	go subscriber.subscribe(ctx, client)
-	var dlqMsgData []byte
-	go dlqTopicSub.Receive(ctx, func(ctx context.Context, dlqMsg *pubsub.Message) {
-		dlqMsgData = dlqMsg.Data
-	})
+
 	//sleep a second for the test to complete, then allow everything to shut down
 	time.Sleep(1 * time.Second)
 
-	//nothing should be on the DLQ
-	assert.Nil(dlqMsgData)
 	printer.AssertCalled(t, "Process", printFilename, mock.Anything)
 }
 
@@ -93,14 +82,8 @@ func TestSubscribeFailsMissingFilename(t *testing.T) {
 	topic, err := createTopic(assert)
 	defer topic.Delete(ctx)
 
-	dlqTopic := createTopicDLQ(err, assert, topic)
-	defer dlqTopic.Delete(ctx)
-
 	sub := createSubscription(err, topic, assert)
 	defer sub.Delete(ctx)
-
-	dlqTopicSub := createDLQSubscription(err, dlqTopic, assert, sub)
-	defer dlqTopicSub.Delete(ctx)
 
 	printFilename := "test.csv"
 
@@ -119,30 +102,15 @@ func TestSubscribeFailsMissingFilename(t *testing.T) {
 	assert.Nil(err)
 
 	go subscriber.subscribe(ctx, client)
-	var dlqMsgData []byte
-	go dlqTopicSub.Receive(ctx, func(ctx context.Context, dlqMsg *pubsub.Message) {
-		assert.NotNil(dlqMsg)
-		assert.Equal(msg.Data, dlqMsg.Data)
-		dlqMsgData = dlqMsg.Data
-	})
+
 	//sleep a second for the test to complete, then allow everything to shut down
 	time.Sleep(1 * time.Second)
 
-	assert.NotNil(dlqMsgData)
 	printer.AssertNotCalled(t, "Process", printFilename, mock.Anything)
 }
 
-func createDLQSubscription(err error, dlqTopic *pubsub.Topic, assert *assert.Assertions, sub *pubsub.Subscription) *pubsub.Subscription {
-	dlqTopicSub, err := client.CreateSubscription(ctx, "print-file-jobs-dead-letter", pubsub.SubscriptionConfig{
-		Topic: dlqTopic,
-	})
-	assert.Nil(err)
-	assert.NotNil(sub)
-	return dlqTopicSub
-}
-
 func createSubscription(err error, topic *pubsub.Topic, assert *assert.Assertions) *pubsub.Subscription {
-	sub, err := client.CreateSubscription(ctx, "print-file-workers", pubsub.SubscriptionConfig{
+	sub, err := client.CreateSubscription(ctx, "print-file", pubsub.SubscriptionConfig{
 		Topic: topic,
 	})
 	assert.Nil(err)
@@ -150,16 +118,8 @@ func createSubscription(err error, topic *pubsub.Topic, assert *assert.Assertion
 	return sub
 }
 
-func createTopicDLQ(err error, assert *assert.Assertions, topic *pubsub.Topic) *pubsub.Topic {
-	dlqTopic, err := client.CreateTopic(ctx, "print-file-jobs-dead-letter")
-	assert.Nil(err)
-	assert.NotNil(topic)
-	fmt.Println(topic)
-	return dlqTopic
-}
-
 func createTopic(assert *assert.Assertions) (*pubsub.Topic, error) {
-	topic, err := client.CreateTopic(ctx, "print-file-jobs")
+	topic, err := client.CreateTopic(ctx, "print-file")
 	assert.Nil(err)
 	assert.NotNil(topic)
 	fmt.Println(topic)
