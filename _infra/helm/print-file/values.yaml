@@ -50,5 +50,5 @@ gcp:
   bucket:
     name: print-file
     prefix: ""
-  topic: print-file-jobs
-  subscription: print-file-workers
+  topic: print-file
+  subscription: print-file
