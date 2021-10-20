@@ -16,8 +16,8 @@ resources:
     memory: "50Mi"
     cpu: "10m"
   limits:
-    cpu: "50m"
-    memory: "200Mi"
+    cpu: "30m"
+    memory: "100Mi"
 
 autoscaling: false
 scaleAt:
