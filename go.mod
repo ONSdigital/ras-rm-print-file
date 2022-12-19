@@ -13,6 +13,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.10.0
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
+	golang.org/x/sys v0.3.0 // indirect
 	google.golang.org/api v0.28.0
 	google.golang.org/grpc v1.29.1
 )
