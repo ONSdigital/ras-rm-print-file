@@ -1,4 +1,4 @@
-FROM golang:1.14.4-alpine3.12
+FROM golang:1.17.3-alpine3.16
 
 RUN mkdir "/src"
 WORKDIR "/src"
