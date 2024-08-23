@@ -12,7 +12,7 @@ func bucketPath(filename string) string {
 	path := filename
 	if prefix != "" {
 		ps := string(os.PathSeparator)
-		path = prefix + ps + filename
+		path = ps + prefix + ps + filename
 	}
 
 	return path

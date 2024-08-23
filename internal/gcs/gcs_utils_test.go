@@ -13,6 +13,6 @@ func TestUtils(t *testing.T) {
 	assert.Equal("someFileName.json", bucketPath("someFileName.json"))
 
 	viper.SetDefault("PREFIX_NAME", "test")
-	assert.Equal("test/someFileName.json", bucketPath("someFileName.json"))
+	assert.Equal("/test/someFileName.json", bucketPath("someFileName.json"))
 
 }
