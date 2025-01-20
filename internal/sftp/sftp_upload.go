@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
+	"io/ioutil"
 )
 
 type SFTPUpload struct {
@@ -18,8 +19,18 @@ type SFTPUpload struct {
 func (s *SFTPUpload) Init() error {
 	var err error
 	addr := createSFTPAddress()
+	publicKeyBytes, err := ioutil.ReadFile("allowed_hostkey.pub")
+	if err != nil {
+		logger.Error("unable to read allowed host key file", zap.Error(err))
+		return err
+	}
+	publicKey, err := ssh.ParsePublicKey(publicKeyBytes)
+	if err != nil {
+		logger.Error("unable to parse allowed host key", zap.Error(err))
+		return err
+	}
 	config := &ssh.ClientConfig{
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // TODO remove this and check the key
+		HostKeyCallback: ssh.FixedHostKey(publicKey),
 		User:            viper.GetString("SFTP_USERNAME"),
 		Auth: []ssh.AuthMethod{
 			ssh.Password(viper.GetString("SFTP_PASSWORD")),
