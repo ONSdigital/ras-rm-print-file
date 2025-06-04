@@ -1,7 +1,8 @@
 module github.com/ONSdigital/ras-rm-print-file
 
-go 1.21
-toolchain go1.24.1
+go 1.23
+
+toolchain go1.24.3
 
 require (
 	cloud.google.com/go/datastore v1.11.0
