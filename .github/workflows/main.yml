@@ -60,6 +60,7 @@ jobs:
         run: |
           docker push "$REGISTRY_HOSTNAME"/"$GAR_GOOGLE_PROJECT_ID"/"$GAR_REPOSITORY"/"$IMAGE":${{ env.pr_number }}
       - name: template helm
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
         run: |
           helm template $CHART_DIRECTORY
       - name: Set current tag
