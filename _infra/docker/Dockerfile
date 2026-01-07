@@ -22,6 +22,7 @@ COPY --from=build-stage /src/print-file .
 
 RUN chmod 550 /opt/print-file
 RUN chown print-file-user:print-file-group /opt/print-file/print-file
+RUN chown -R print-file-user:print-file-group /opt/print-file/templates
 
 USER print-file-user
 
