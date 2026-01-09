@@ -169,7 +169,9 @@ jobs:
       - name: Build and Push Docker Image
         if: github.ref == 'refs/heads/main'
         run: |
-          docker buildx build -f _infra/docker/Dockerfile -t "$REGISTRY_HOSTNAME"/"$GAR_GOOGLE_PROJECT_ID"/"$GAR_REPOSITORY"/"$IMAGE":latest -t "$REGISTRY_HOSTNAME"/"$GAR_GOOGLE_PROJECT_ID"/"$GAR_REPOSITORY"/"$IMAGE":${{ env.version }} \
+          docker buildx build -f _infra/docker/Dockerfile --platform linux/amd64,linux/arm64 \
+          -t "$REGISTRY_HOSTNAME"/"$GAR_GOOGLE_PROJECT_ID"/"$GAR_REPOSITORY"/"$IMAGE":latest \
+          -t "$REGISTRY_HOSTNAME"/"$GAR_GOOGLE_PROJECT_ID"/"$GAR_REPOSITORY"/"$IMAGE":${{ env.version }} \
           --push .
       - name: Publish Charts
         if: github.ref == 'refs/heads/main'
