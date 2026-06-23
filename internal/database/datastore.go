@@ -64,9 +64,9 @@ func (s *DataStore) Add(printFilename string, dataFilename string) (*pkg.PrintFi
 	})
 
 	if err != nil {
-		logger.Error("unable to DataStore entry",
+		logger.Error("unable to add datastore entry",
 			zap.Error(err))
-		return nil, fmt.Errorf("unable to to DataStore entry: %v", err)
+		return nil, fmt.Errorf("unable to add datastore entry: %v", err)
 	}
 	return pfr, nil
 }
@@ -105,7 +105,7 @@ func (s *DataStore) Update(pfr *pkg.PrintFileRequest) error {
 		return err
 	}
 	if _, err := tx.Commit(); err != nil {
-		logger.Error("unable to commit entity to database",
+		logger.Error("unable to commit entity to datastore",
 			zap.Error(err))
 		return err
 	}
@@ -130,7 +130,7 @@ func (s *DataStore) Delete(pfr *pkg.PrintFileRequest) error {
 		return err
 	}
 	if _, err := tx.Commit(); err != nil {
-		logger.Error("unable to commit entity to database",
+		logger.Error("unable to commit entity to datastore",
 			zap.Error(err))
 		return err
 	}
