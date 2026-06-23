@@ -90,7 +90,7 @@ func (p *SDCPrinter) Process(filename string, datafileName string) error {
 
 	err = p.store.Update(printFileRequest)
 	if err != nil {
-		logger.Error("failed to Update database",
+		logger.Error("failed to update datastore",
 			zap.Error(err))
 		return err
 	}
@@ -160,7 +160,7 @@ func (p *SDCPrinter) ReProcess(pfr *pkg.PrintFileRequest) error {
 	defer p.store.Close()
 	err = p.store.Update(pfr)
 	if err != nil {
-		logger.Error("failed to Update database",
+		logger.Error("failed to Update datastore",
 			zap.Error(err))
 		return err
 	}
