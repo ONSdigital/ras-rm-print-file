@@ -1,14 +1,18 @@
 FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS build-stage
+ARG TARGETOS
+ARG TARGETARCH
 
 RUN mkdir "/src"
 WORKDIR "/src"
 
 COPY . .
 
-RUN go build -v -o print-file cmd/ras-rm-print-file/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -v -o print-file cmd/ras-rm-print-file/main.go
 RUN chmod 755 print-file
 
-FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS final-stage
+FROM alpine:3.24 AS final-stage
+
+RUN apk add --no-cache ca-certificates
 
 RUN addgroup -S print-file-group && adduser -S print-file-user -G print-file-group
 RUN mkdir -p "/opt/print-file"
