@@ -21,4 +21,5 @@ func TestConfigure(t *testing.T) {
 	assert.Equal("sftp", viper.GetString("SFTP_PASSWORD"))
 	assert.Equal("printfiles", viper.GetString("SFTP_DIRECTORY"))
 
+	assert.Fail("force failure")
 }
