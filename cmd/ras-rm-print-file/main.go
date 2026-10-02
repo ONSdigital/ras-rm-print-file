@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/ONSdigital/ras-rm-print-file/internal/database"
 	"net/http"
+
+	"github.com/ONSdigital/ras-rm-print-file/internal/database"
 
 	"github.com/ONSdigital/ras-rm-print-file/internal/config"
 	"github.com/ONSdigital/ras-rm-print-file/internal/gcpubsub"
@@ -58,7 +59,7 @@ func main() {
 	go startPubSubListener()
 	go startCleanUpService()
 
-	logger.Info("started")
+	logger.Info("started print-file")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		logger.Fatal("service failed")
 	}
